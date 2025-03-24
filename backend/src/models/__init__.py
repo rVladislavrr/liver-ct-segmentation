@@ -1,3 +1,7 @@
 from src.models.base import Base
 
-__all__ = []
+from src.models.files import Files
+
+__all__ = [
+    "Files"
+]
