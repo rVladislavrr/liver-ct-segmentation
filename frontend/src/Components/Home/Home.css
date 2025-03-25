@@ -1,18 +1,34 @@
-
-.header{
-    width: 100%;
-    background-color: aqua;
-    margin-top: -16px;
+.header {
+  width: 100%;
+  background-color: aqua;
+  margin-top: -16px;
 }
 
-.header-list{
-    display: flex;
-    justify-content: space-between;
-    list-style: none;
-    padding-left: 800px;
-    padding-right: 40px;
+.header-list {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  padding-left: 800px;
+  padding-right: 40px;
 }
 
-.header-list-item{
-    cursor: pointer;
+.header-list-item {
+  cursor: pointer;
+}
+
+.count {
+  margin: 6px auto 6px auto;
+  max-width: 71%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.start-count {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.end-count {
+  display: flex;
+  justify-content: flex-end;
 }

@@ -1,0 +1,14 @@
+.slider{
+
+    max-width: 70%;
+    margin: 0 auto;
+}
+
+.current-count{
+    max-width: 70%;
+    margin: 30px auto 0px auto;
+}
+
+.current-count p{
+    text-align: center;
+}
