@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await s3_client.connect(
         access_key=settings.S3_ACCESS_KEY,
         secret_key=settings.S3_SECRET_KEY,
-        endpoint_url=settings.S3_ENDPOINPUT,
+        endpoint_url=settings.S3_ENDPOINTPUT,
         region_name=settings.S3_REGION,
     )
     await redis_client.connect()

@@ -2,6 +2,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.create_app import create_app
 from src.api.v1 import router
+from src.middlewares.authmiddleware import AuthMiddleware
 from src.middlewares.logmiddleware import LogExecutionTimeMiddleware
 
 app = create_app()
@@ -27,3 +28,4 @@ app.add_middleware(
 )
 
 app.add_middleware(LogExecutionTimeMiddleware)
+app.add_middleware(AuthMiddleware)

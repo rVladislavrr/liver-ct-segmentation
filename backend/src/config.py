@@ -11,12 +11,13 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
 
-    S3_ENDPOIN: str
+    S3_ENDPOINT: str
     S3_ACCESS_KEY: str
     S3_SECRET_KEY: str
     S3_BUCKET_NAME: str
-    S3_ENDPOINPUT: str
+    S3_ENDPOINTPUT: str
     S3_REGION: str
+    S3_PRIVATE_BUCKET_NAME: str
 
     REDIS_USER_PASSWORD: str
     REDIS_HOST: str = "localhost"
