@@ -7,6 +7,7 @@ import redis.asyncio as redis
 from fastapi import HTTPException, status
 
 from src.config import settings
+from src.logger import database_logger
 
 
 class RedisClient:
@@ -44,19 +45,25 @@ class RedisClient:
             await self.redis.close()
 
 
-async def load_files_redis(uuid, image_volume, num_slices):
+async def load_files_redis(uuid, image_volume, num_slices, author_id, is_public):
     try:
         redis = await redis_client.get_redis()
-        await redis.setex(f'file:{uuid}',
-                          60 * 30,
-                          pickle.dumps(image_volume)
-                          )
-        await redis.setex(f'file_meta:{uuid}',
-                          60 * 30,
-                          json.dumps({'num_slices': num_slices})
-                          )
+        pipe = redis.pipeline()
+
+        pipe.setex(f'file:{uuid}',
+                   redis_client.exp,
+                   pickle.dumps(image_volume)
+                   )
+
+        pipe.setex(f'file_metadata:{uuid}',
+                   redis_client.exp,
+                   json.dumps({'num_slices': num_slices,
+                               "author_id": author_id,
+                               "is_public": is_public})
+                   )
+        await pipe.execute()
     except Exception as e:
-        print(e)
+        database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Obj is not cached')
 
@@ -69,7 +76,7 @@ async def load_result_cached(uuid, num_slices, data):
                           pickle.dumps(data)
                           )
     except Exception as e:
-        print(e)
+        database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Obj is not cached')
 
@@ -88,32 +95,32 @@ async def get_result_cached(uuid, num_slices):
             return data
 
     except Exception as e:
-        print(e)
+        database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='redis dead')
 
-
-async def get_files_redis(uuid, num_slices):
+async def get_metadata(uuid):
     try:
         redis = await redis_client.get_redis()
-        metadata_file = await redis.get(f'file_meta:{uuid}')
+        metadata_file = await redis.get(f'file_metadata:{uuid}')
 
         if not metadata_file:
             return None
-
-        metadata = json.loads(metadata_file)
-
-        if num_slices >= metadata['num_slices']:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail='num_images >= num_slices in file')
-        else:
-            file = await redis.get(f'file:{uuid}')
-            buffer = io.BytesIO(file)
-            return pickle.load(buffer)
-    except HTTPException as httpE:
-        raise httpE
+        return json.loads(metadata_file)
     except Exception as e:
-        print(e)
+        database_logger.error(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='redis dead')
+
+async def get_files_redis(uuid):
+    try:
+        redis = await redis_client.get_redis()
+
+        file = await redis.get(f'file:{uuid}')
+        buffer = io.BytesIO(file)
+        return pickle.load(buffer)
+    except Exception as e:
+        database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='redis dead')
 
