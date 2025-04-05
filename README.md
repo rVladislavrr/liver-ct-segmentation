@@ -1,1 +1,1 @@
-# liver kt segmentation
+# liver ct segmentation
