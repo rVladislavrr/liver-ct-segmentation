@@ -3,6 +3,8 @@ import './Home.css';
 import PhotoSlider from '../PhotoSlider/PhotoSlider';
 import { sendPhotoId, uploadFile } from '../../api';
 import Header from '../Header/Header';
+import FileUploadSection from '../FileUploadSection/FileUploadSection'
+import useImageCache from '../../hooks/useImageCache'
 const Home = () => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -10,18 +12,20 @@ const Home = () => {
   const [numSlices, setNumSlices] = useState(localStorage.getItem('numSlices') || '');
   const [photo, setPhoto] = useState(0);
   const [isSending, setIsSending] = useState(false);
-  const [isSending1, setIsSending1] = useState(false);
+  const [isSent, setIsSent] = useState(false);
   const [isUploaded, setIsUploaded] = useState(false);
   const [resultImage, setResultImage] = useState(null);
   const [isChoosed, setIsChoosed] = useState(false);
   const [imageSettings, setImageSettings] = useState(false);
 
+  const { cacheImage, getCachedImage } = useImageCache();
+
   useEffect(() => {
-    const cachedImages = JSON.parse(localStorage.getItem('cachedImages') || '{}');
-    if (cachedImages[uuid]?.[photo] && isChoosed === true) {
-      setResultImage(cachedImages[uuid][photo]);
+    const cachedImage = getCachedImage(uuid, photo);
+    if (cachedImage && isChoosed) {
+      setResultImage(cachedImage);
     }
-  }, [uuid, photo]);
+  }, [uuid, photo, isChoosed, getCachedImage]);
 
   useEffect(() => {
     return () => {
@@ -30,25 +34,6 @@ const Home = () => {
       }
     };
   }, [resultImage]);
-
-  const cacheImage = async (uuid, sliceNum, blob) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        const cachedImages = JSON.parse(localStorage.getItem('cachedImages') || '{}');
-
-        if (!cachedImages[uuid]) {
-          cachedImages[uuid] = {};
-        }
-
-        cachedImages[uuid][sliceNum] = base64data;
-        localStorage.setItem('cachedImages', JSON.stringify(cachedImages));
-        resolve(base64data);
-      };
-      reader.readAsDataURL(blob);
-    });
-  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -67,7 +52,7 @@ const Home = () => {
 
   const handleUpload = async () => {
     try {
-      setIsSending1(true);
+      setIsSent(true);
       const response = await uploadFile(file);
 
       const { uuid, num_slices } = response;
@@ -82,7 +67,7 @@ const Home = () => {
       console.log('error', error);
       setIsUploaded(false);
     } finally {
-      setIsSending1(false);
+      setIsSent(false);
     }
   };
 
@@ -116,51 +101,14 @@ const Home = () => {
   return (
     <div className="Home">
       <Header />
-      <div className="file-upload-section">
-        <div className="file-input-wrapper">
-          <input
-            type="file"
-            id="button-choose"
-            accept=".nii"
-            onChange={handleFileChange}
-            className="hidden-input"
-          />
-          <label
-            htmlFor="button-choose"
-            className="file-choose-button"
-          >
-            Выбрать файл
-          </label>
 
-          {isChoosed && (
-            <div className="file-info">
-              <span className="file-name">Файл: {file?.name}</span>
-              <button
-                onClick={handleUpload}
-                disabled={!file || isSending1}
-                className="upload-button"
-              >
-                {isSending1 ? (
-                  <span>Отправка...</span>
-                ) : (
-                  <>
-                    <img
-                      src={'/download.png'}
-                      className="upload-icon"
-                      width={'16px'}
-                      height={'16px'}
-                      alt=""
-                    />
-                    <span>Загрузить</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {error && <p className="upload-err-msg">{error}</p>}
-      </div>
+      <FileUploadSection
+        onFileChange={handleFileChange}
+        onUpload={handleUpload}
+        file={file}
+        error={error}
+        isUploading={isSent}
+      />
 
       {isUploaded && (
         <div className="slice-controls">
