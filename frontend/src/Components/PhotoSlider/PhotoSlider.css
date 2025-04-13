@@ -1,14 +1,38 @@
 .slider{
-
     max-width: 70%;
     margin: 0 auto;
 }
 
-.current-count{
-    max-width: 70%;
-    margin: 30px auto 0px auto;
+.rc-slider-handle:hover {
+    border-color: #8DA9C4;
 }
 
-.current-count p{
-    text-align: center;
+.rc-slider-handle-dragging {
+    border-color: #0B2545 !important;
+    box-shadow: 0 0 0 5px #8DA9C4 !important;
+    cursor: grabbing !important;
+}
+
+.rc-slider-track {
+    height: 9px;
+    background-color: #0B2545;
+    border-radius: 3px;
+}
+
+.rc-slider-rail {
+    height: 9px;
+    background-color: #8DA9C4;
+    border-radius: 3px;
+}
+
+.rc-slider-handle {
+    width: 16px;
+    height: 16px;
+    margin-top: -4px;
+    background-color: #fff;
+    border: 2px solid #0B2545;
+    border-radius: 50%;
+    cursor: pointer;
+    cursor: grab;
+    touch-action: pan-x;
 }

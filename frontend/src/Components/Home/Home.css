@@ -1,34 +1,231 @@
-.header {
-  width: 100%;
-  background-color: aqua;
-  margin-top: -16px;
+body {
+  background-color: #eef4ed;
 }
 
-.header-list {
+.Home {
+  margin: 0;
+  padding: 0;
+}
+
+.file-upload-section {
   display: flex;
-  justify-content: space-between;
-  list-style: none;
-  padding-left: 800px;
-  padding-right: 40px;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 120px auto 0 auto;
 }
 
-.header-list-item {
+.file-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.file-choose-button {
+  background-color: #0b2545;
+  color: white;
+  padding: 16px 26px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.2s;
+  transition: padding 0.2s;
 }
 
-.count {
+.file-choose-button:hover {
+  background-color: #164277;
+}
+
+.file-choose-button:active{
+  padding: 18px 28px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-name {
+  white-space: normal;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-style: italic;
+}
+
+.upload-button {
+  background-color: #0b2545;
+  color: white;
+  padding: 16px 26px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  transition: padding 0.2s;
+}
+
+.upload-button:hover {
+  background-color: #164277;
+}
+
+.upload-button:active {
+  padding: 18px 28px;
+}
+
+.upload-icon {
+  transform: translateY(1px);
+  margin-right: 10px;
+  margin-left: -8px;
+}
+
+.upload-button:disabled {
+  background-color: #707070;
+  cursor: wait;
+}
+
+.slice-controls {
+  margin-top: 100px;
+}
+
+.slice-count {
   margin: 6px auto 6px auto;
   max-width: 71%;
   display: flex;
   justify-content: space-between;
 }
 
-.start-count {
-  display: flex;
-  justify-content: flex-start;
+.current-count {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px;
+  color: #0b2545;
+  font-weight: bold;
+  max-width: 70%;
+  margin: 30px auto 0px auto;
 }
 
-.end-count {
+.current-count p {
+  text-align: center;
+}
+
+.slider-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  color: #8da9c4;
+}
+
+.slice-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.get-slice-button {
+  background-color: #0b2545;
+  color: white;
+  padding: 16px 26px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  transition: padding 0.2s;
+}
+
+.get-slice-button:hover {
+  background-color: #164277;
+}
+
+.get-slice-button:active {
+  padding: 18px 28px;
+}
+
+.container-photo {
+  text-align: center;
+  margin-top: 40px;
+  user-select: none;
+}
+
+.result-img-container {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.result-sliced-img {
+  width: 300px;
+  height: 300px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.result-sliced-img:hover {
+  opacity: 0.8;
+}
+
+.settings-buttons{
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: photo_settings_animation 0.4s;
+  animation-fill-mode: both;
+}
+
+@keyframes photo_settings_animation {
+  from {
+      left: 300px;
+      opacity: 0
+  }
+
+  to {
+      left: 330px;
+      opacity: 1
+  }
+}
+
+.settings-button{
+  background-color: #6784a1;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 7px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  transition: padding 0.3s;
+  width: 220px;
+}
+
+.settings-button:hover{
+  background-color: #5e758d;
+  padding: 16px 26px;
+}
+
+.settings-button:active{
+  box-shadow: 0 0 0 2px #5e758d,
+                inset 0 0 0 1px #ffffff;
 }
