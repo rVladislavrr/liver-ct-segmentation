@@ -1,1 +1,1 @@
-# segmentation-kt-snimkov
+# liver ct segmentation
