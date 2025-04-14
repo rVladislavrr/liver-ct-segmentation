@@ -3,8 +3,8 @@ import './Home.css';
 import PhotoSlider from '../PhotoSlider/PhotoSlider';
 import { sendPhotoId, uploadFile } from '../../api';
 import Header from '../Header/Header';
-import FileUploadSection from '../FileUploadSection/FileUploadSection'
-import useImageCache from '../../hooks/useImageCache'
+import FileUploadSection from '../FileUploadSection/FileUploadSection';
+import useImageCache from '../../hooks/useImageCache';
 const Home = () => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -98,6 +98,16 @@ const Home = () => {
     setImageSettings((prev) => !prev);
   };
 
+  const handleDownload = () => {
+    if (!resultImage) return;
+    const link = document.createElement('a');
+    link.href = resultImage;
+    link.download = `ct_slice_${photo}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="Home">
       <Header />
@@ -149,8 +159,8 @@ const Home = () => {
               draggable="false"
             />
             {imageSettings && (
-              <div className='settings-buttons'>
-                <button className="settings-button download">Скачать</button>
+              <div className="settings-buttons">
+                <button className="settings-button download" onClick={handleDownload}>Скачать</button>
                 <button className="settings-button save">Сохранить в личном кабинете</button>
                 <button className="settings-button change">Изменить контур</button>
               </div>
