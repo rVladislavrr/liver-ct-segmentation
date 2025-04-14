@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, status, Request, UploadFile, File,Re
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.config import settings
+from src.logger import database_logger
 from src.schemas.users import Token, UserInfo
 
 TOKEN_TYPE_FIELD = "type"
@@ -121,10 +122,15 @@ async def get_payload_access(credentials: HTTPAuthorizationCredentials = Depends
     return UserInfo.model_validate(decode_jwt_token(token, ACCESS_TOKEN_TYPE), from_attributes=True)
 
 
-async def get_payload_refresh(request: Request):
+async def get_payload_refresh(request: Request) -> (str, str):
+    request_id = request.state.request_id
     token = request.cookies.get(settings.auth_jwt.key_cookie)
+
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not found refresh token")
+
     payload = decode_jwt_token(token, REFRESH_TOKEN_TYPE)
-    return payload
+    return payload, request_id
 
 async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
@@ -135,3 +141,5 @@ async def get_verify_payload(userInf=Depends(get_active_payload)) -> UserInfo:
     if userInf.is_verified:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not verified')
+
+
