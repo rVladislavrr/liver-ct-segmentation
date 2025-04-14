@@ -17,7 +17,7 @@ origins = [
 
     "http://192.168.65.1:3000"
 ]
-app.include_router(router)
+app.include_router(router, tags=['API model'])
 
 app.add_middleware(
     CORSMiddleware,

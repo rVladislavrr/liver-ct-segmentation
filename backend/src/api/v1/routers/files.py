@@ -4,8 +4,9 @@ import pickle
 from fastapi import (
     APIRouter, UploadFile, File, Depends,
     BackgroundTasks, HTTPException,
-    status, Request, Response, Query
+    status, Request, Response, Query, Security
 )
+from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
@@ -23,8 +24,13 @@ from src.service.redis_conn import (
 from src.service.s3 import s3_client, upload_files_to_s3
 from src.schemas import files
 
-router = APIRouter()
 
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False, description=r"Форма записи TOKEN \<token\>")
+
+async def for_documentation(api_key: str = Security(api_key_header)):
+    pass
+
+router = APIRouter(dependencies=[Depends(for_documentation)])
 
 async def check_nii_file(file: UploadFile = File(...)):
     if not file.filename.endswith('.nii'):
@@ -184,4 +190,5 @@ async def predict(
         }
     )
     return Response(content=result_img, media_type="image/png")
+
 
