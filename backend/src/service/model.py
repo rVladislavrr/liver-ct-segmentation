@@ -28,7 +28,7 @@ class ModelSegmentationManager:
     def __load_model(self):
         model = smp.DeepLabV3Plus(classes=self.n_cls, in_channels=1)
         try:
-            model.load_state_dict(torch.load('model_new.pth', map_location=self.device))
+            model.load_state_dict(torch.load('model.pth', map_location=self.device))
         except FileNotFoundError:
             raise RuntimeError("Model file not found")
         model.to(self.device)

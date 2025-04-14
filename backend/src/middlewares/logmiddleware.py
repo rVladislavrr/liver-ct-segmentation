@@ -1,7 +1,7 @@
 import time
 from uuid import uuid4
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 
 from src.logger import api_logger
