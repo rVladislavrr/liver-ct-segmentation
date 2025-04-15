@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Header.css';
-import { logout } from '../../api';
+import { logout } from '../../api/commonApi';
 const Header = () => {
   const [isAuth, setIsAuth] = useState(!!localStorage.getItem('accessToken'));
   const navigate = useNavigate();
