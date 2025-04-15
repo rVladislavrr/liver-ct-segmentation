@@ -60,6 +60,11 @@
   border-radius: 4px;
   height: 26px;
   font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+}
+
+.form-group input::-webkit-input-placeholder {
+  font-size: 16px;
 }
 
 .submit-button {

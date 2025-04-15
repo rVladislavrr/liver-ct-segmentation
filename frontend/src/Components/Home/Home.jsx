@@ -22,10 +22,10 @@ const Home = () => {
 
   useEffect(() => {
     const cachedImage = getCachedImage(uuid, photo);
-    if (cachedImage && isChoosed) {
+    if (cachedImage && isChoosed && isUploaded) {
       setResultImage(cachedImage);
     }
-  }, [uuid, photo, isChoosed, getCachedImage]);
+  }, [uuid, photo, isChoosed, getCachedImage, isUploaded]);
 
   useEffect(() => {
     return () => {
@@ -73,7 +73,6 @@ const Home = () => {
 
   const handleSendSlice = async () => {
     try {
-      setIsSending(true);
       setIsSending(true);
 
       const cachedImages = JSON.parse(localStorage.getItem('cachedImages') || '{}');

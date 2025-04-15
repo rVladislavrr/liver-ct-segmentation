@@ -10,7 +10,7 @@ const Header = () => {
     try {
       await logout();
       setIsAuth(false);
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Logout error', error);
     }

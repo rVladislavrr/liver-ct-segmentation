@@ -12,10 +12,15 @@ const api = axios.create({
 let authInterceptorId = null;
 
 export const uploadFile = async (file) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
   const formData = new FormData();
   formData.append('file', file);
   try {
-    const response = await axios.post(`${API_URL}/upload/`, formData, {});
+    const response = await axios.post(`${API_URL}/upload/`, formData, { headers: headers });
     return response.data;
   } catch (error) {
     console.error('error', error);
@@ -24,6 +29,13 @@ export const uploadFile = async (file) => {
 };
 
 export const sendPhotoId = async (uuid_file, num_images) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
   try {
     const response = await axios.post(
       `${API_URL}/predict/`,
@@ -32,9 +44,7 @@ export const sendPhotoId = async (uuid_file, num_images) => {
         num_images,
       },
       {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         responseType: 'blob',
       }
     );
@@ -54,9 +64,36 @@ export const login = async (email, password) => {
         _skipAuth: true,
       }
     );
-    const { access } = response.data;
-    localStorage.setItem('accessToken', access);
-    setupAuthInterceptor(access);
+    const { accessToken } = response.data;
+    console.log(accessToken);
+    localStorage.setItem('accessToken', accessToken);
+    setupAuthInterceptor(accessToken);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.response?.data?.message || 'Ошибка сервера. Попробуйте позже.',
+    };
+  }
+};
+
+export const register = async (name, email, password) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/auth/registration/`,
+      { name, email, password },
+      {
+        _skipAuth: true,
+      }
+    );
+
+    if (response.data.access) {
+      const { accessToken } = response.data;
+      localStorage.setItem('accessToken', accessToken);
+      setupAuthInterceptor(accessToken);
+    }
+
     return { success: true, data: response.data };
   } catch (error) {
     return {
@@ -66,7 +103,7 @@ export const login = async (email, password) => {
   }
 };
 
-axios.interceptors.request.use(config => {
+axios.interceptors.request.use((config) => {
   if (config._skipAuth) {
     delete config._skipAuth;
     return config;
@@ -84,9 +121,9 @@ export const refreshToken = async () => {
       }
     );
 
-    const { access } = response.data;
-    localStorage.setItem('accessToken', access);
-    return access;
+    const { accessToken } = response.data;
+    localStorage.setItem('accessToken', accessToken);
+    return accessToken;
   } catch (error) {
     console.error('Refresh token error:', error);
     throw error;
@@ -113,7 +150,7 @@ export const logout = async (preventRedirect = false) => {
     localStorage.removeItem('accessToken');
     clearAuthInterceptor();
     delete api.defaults.headers.common.Authorization;
-    if (!preventRedirect) window.location.href = '/login';
+    if (!preventRedirect) window.location.href = '/';
   }
 };
 

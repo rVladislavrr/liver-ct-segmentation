@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../../api.js';
 import './Login.css';
+import { validateLoginForm, validateEmail, validatePassword } from '../../../utils/validationAuth.js'
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,8 +21,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
+    const { isValid, errors: validationErrors } = validateLoginForm(formData);
+    if (!isValid) {
+      setErrors(validationErrors);
+      return;
+    }
 
-    if (!validateForm()) return;
+    setIsLoading(true);
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
@@ -29,7 +35,6 @@ const Login = () => {
     } else {
       setFormError(result.error);
     }
-
     setIsLoading(false);
   };
 
@@ -46,39 +51,6 @@ const Login = () => {
     }));
   };
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
-
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
-
-  const validateForm = () => {
-    let valid = true;
-    const newErrors = { email: '', password: '' };
-
-    if (!formData.email) {
-      newErrors.email = 'Email обязателен';
-      valid = false;
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Введите корректный email';
-      valid = false;
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Пароль обязателен';
-      valid = false;
-    } else if (!validatePassword(formData.password)) {
-      newErrors.password = 'Пароль должен содержать минимум 8 символов';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
   const isFormValid = validateEmail(formData.email) && validatePassword(formData.password);
 
   return (
@@ -87,7 +59,7 @@ const Login = () => {
         <p className="title-website">Веб-сервис для сегментации снимков КТ печени</p>
       </div>
       <div className="login-container">
-        <p className='title-login'>Вход</p>
+        <p className="title-login">Вход</p>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email:</label>
@@ -122,7 +94,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading || !isFormValid}
-            className='submit-button'
+            className="submit-button"
           >
             Войти
           </button>
