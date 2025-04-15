@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(
+        title='Liver CT Segmentation',
         lifespan=lifespan,
     )
     return app
