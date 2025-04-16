@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../../../api.js';
+import { register } from '../../../api/commonApi.js';
 import { validateRegistrationForm, validateEmail, validatePassword } from '../../../utils/validationAuth.js';
 
 const Registration = () => {

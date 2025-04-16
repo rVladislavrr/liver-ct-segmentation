@@ -20,7 +20,7 @@ export const uploadFile = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   try {
-    const response = await axios.post(`${API_URL}/upload/`, formData, { headers: headers });
+    const response = await axios.post(`${API_URL}/upload`, formData, { headers: headers });
     return response.data;
   } catch (error) {
     console.error('error', error);
@@ -38,7 +38,7 @@ export const sendPhotoId = async (uuid_file, num_images) => {
   }
   try {
     const response = await axios.post(
-      `${API_URL}/predict/`,
+      `${API_URL}/predict`,
       {
         uuid_file,
         num_images,
@@ -58,7 +58,7 @@ export const sendPhotoId = async (uuid_file, num_images) => {
 export const login = async (email, password) => {
   try {
     const response = await axios.post(
-      `${API_URL}/auth/login/`,
+      `${API_URL}/auth/login`,
       { email, password },
       {
         _skipAuth: true,
@@ -81,7 +81,7 @@ export const login = async (email, password) => {
 export const register = async (name, email, password) => {
   try {
     const response = await axios.post(
-      `${API_URL}/auth/registration/`,
+      `${API_URL}/auth/registration`,
       { name, email, password },
       {
         _skipAuth: true,
@@ -114,7 +114,7 @@ axios.interceptors.request.use((config) => {
 export const refreshToken = async () => {
   try {
     const response = await axios.post(
-      `${API_URL}/auth/refresh/`,
+      `${API_URL}/auth/refresh`,
       {},
       {
         withCredentials: true,
@@ -138,7 +138,7 @@ export const logout = async (preventRedirect = false) => {
 
     await axios
       .post(
-        `${API_URL}/auth/logout/`,
+        `${API_URL}/auth/logout`,
         {},
         {
           withCredentials: true,

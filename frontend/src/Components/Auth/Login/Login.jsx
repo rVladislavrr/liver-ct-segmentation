@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../../../api.js';
+import { login } from '../../../api/commonApi.js';
 import './Login.css';
 import { validateLoginForm, validateEmail, validatePassword } from '../../../utils/validationAuth.js'
 

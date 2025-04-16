@@ -8,6 +8,6 @@ export const fetchUserProfile = async () => {
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
-  const response = await axios.get(`${API_URL}/profile`, { headers: headers });
+  const response = await axios.get(`${API_URL}/photos`, { headers: headers });
   return response.data;
 };

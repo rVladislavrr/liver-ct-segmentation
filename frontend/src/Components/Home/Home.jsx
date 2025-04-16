@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Home.css';
 import PhotoSlider from '../PhotoSlider/PhotoSlider';
-import { sendPhotoId, uploadFile } from '../../api';
+import { sendPhotoId, uploadFile } from '../../api/commonApi';
 import Header from '../Header/Header';
 import FileUploadSection from '../FileUploadSection/FileUploadSection';
 import useImageCache from '../../hooks/useImageCache';
