@@ -115,14 +115,14 @@ async def get_metadata(uuid):
 async def get_files_redis(uuid):
     try:
         redis = await redis_client.get_redis()
-
         file = await redis.get(f'file:{uuid}')
         buffer = io.BytesIO(file)
+        if buffer is None:
+            print('miss file')
         return pickle.load(buffer)
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='redis dead')
-
 
 redis_client = RedisClient()

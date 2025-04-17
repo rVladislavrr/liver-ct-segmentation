@@ -4,9 +4,8 @@ import pickle
 from fastapi import (
     APIRouter, UploadFile, File, Depends,
     BackgroundTasks, HTTPException,
-    status, Request, Response, Query, Security
+    status, Request, Response, Query
 )
-from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
@@ -24,13 +23,8 @@ from src.service.redis_conn import (
 from src.service.s3 import s3_client, upload_files_to_s3
 from src.schemas import files
 
+router = APIRouter()
 
-api_key_header = APIKeyHeader(name="Authorization", auto_error=False, description=r"Форма записи TOKEN \<token\>")
-
-async def for_documentation(api_key: str = Security(api_key_header)):
-    pass
-
-router = APIRouter(dependencies=[Depends(for_documentation)])
 
 async def check_nii_file(file: UploadFile = File(...)):
     if not file.filename.endswith('.nii'):
@@ -58,15 +52,13 @@ async def check_nii_file(file: UploadFile = File(...)):
         )
 
 
-@router.post('/upload/', response_model=files.File)
+@router.post('/upload', response_model=files.File)
 async def upload_file(
         request: Request,
         background_task: BackgroundTasks,
-        is_public: bool = Query(default=False),
         metafile=Depends(check_nii_file),
         session: AsyncSession = Depends(get_async_session),
 ) -> files.File:
-
     filename, image_volume, size_file, file_bytes = metafile
     num_slices = image_volume.shape[2] - 1
     request_id = request.state.request_id
@@ -75,11 +67,11 @@ async def upload_file(
     try:
 
         data = {
-                'filename': filename,
-                'size_bytes': size_file,
-                'num_slices': num_slices,
-                "is_public": is_public
-            }
+            'filename': filename,
+            'size_bytes': size_file,
+            'num_slices': num_slices,
+            "is_public": True
+        }
         if user_id is not None:
             data['author_id'] = user_id
         file_orm = await fileManager.create(
@@ -121,7 +113,7 @@ async def upload_file(
         )
 
 
-@router.post('/predict/')
+@router.post('/predict')
 async def predict(
         request: Request,
         background_task: BackgroundTasks,
@@ -190,5 +182,3 @@ async def predict(
         }
     )
     return Response(content=result_img, media_type="image/png")
-
-

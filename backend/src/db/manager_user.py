@@ -31,7 +31,7 @@ class UsersManager(BaseManager):
         try:
             hash_password = hashlib.sha256(data.password.encode('utf-8')).hexdigest()
 
-            userOrm = self.model(email=data.email, hash_password=hash_password)
+            userOrm = self.model(email=data.email, hash_password=hash_password, name=data.name)
             session.add(userOrm)
             await session.flush()
             database_logger.info(
@@ -67,10 +67,20 @@ class UsersManager(BaseManager):
         try:
             query = select(Users).where(Users.email == user_data.email)
             user = (await session.execute(query)).scalar()
+            if user is None:
+                database_logger.info(
+                    "User authorization failed 'Email wrong'",
+                    extra={
+                        "user_email": user_data.email,
+                        "request_id": request_id,
+                    }
+                )
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email or password wrong')
+
             enter_hash_password = hashlib.sha256(user_data.password.encode('utf-8')).hexdigest()
             if not user or enter_hash_password != user.hash_password:
                 database_logger.info(
-                    "User authorization failed 'Email or password wrong'",
+                    "User authorization failed 'password wrong'",
                     extra={
                         "user_email": user.email,
                         "user_uuid": user.uuid,

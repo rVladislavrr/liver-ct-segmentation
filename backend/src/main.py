@@ -27,5 +27,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(LogExecutionTimeMiddleware)
 app.add_middleware(AuthMiddleware)
+app.add_middleware(LogExecutionTimeMiddleware)

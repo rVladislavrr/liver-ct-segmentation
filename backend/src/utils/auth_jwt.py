@@ -132,6 +132,7 @@ async def get_payload_refresh(request: Request) -> (str, str):
     payload = decode_jwt_token(token, REFRESH_TOKEN_TYPE)
     return payload, request_id
 
+
 async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
         return userInf
@@ -143,3 +144,5 @@ async def get_verify_payload(userInf=Depends(get_active_payload)) -> UserInfo:
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not verified')
 
 
+async def get_users_payload(token: str) -> UserInfo:
+    return UserInfo.model_validate(decode_jwt_token(token, ACCESS_TOKEN_TYPE), from_attributes=True)

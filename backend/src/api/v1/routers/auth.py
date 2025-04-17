@@ -12,7 +12,7 @@ from src.utils.auth_jwt import create_tokens, get_payload_refresh
 router = APIRouter(prefix='/auth', responses={401: {'detail': "NOT AUTHORIZED"}}, tags=["Auth"])
 
 
-@router.post('/registration/', status_code=status.HTTP_201_CREATED,
+@router.post('/registration', status_code=status.HTTP_201_CREATED,
              description='Регистрация пользователя')
 async def register(request: Request,
                    response: Response,
@@ -24,7 +24,7 @@ async def register(request: Request,
     return create_tokens(user_inf, response)
 
 
-@router.post('/login/', description='Авторизация или вход пользователя')
+@router.post('/login', description='Авторизация или вход пользователя')
 async def auth(request: Request,
                response: Response,
                user_data: UserAuthenticate,
@@ -34,7 +34,7 @@ async def auth(request: Request,
     return create_tokens(user_inf, response)
 
 
-@router.post('/logout/', description='Выход из аккаунта')
+@router.post('/logout', description='Выход из аккаунта')
 async def logout(request: Request, response: Response):
     if request.cookies.get(settings.auth_jwt.key_cookie):
         response.delete_cookie(settings.auth_jwt.key_cookie)
@@ -43,7 +43,7 @@ async def logout(request: Request, response: Response):
     }
 
 
-@router.post('/refresh/', description='Обновление ассес токена через рефреш')
+@router.post('/refresh', description='Обновление ассес токена через рефреш')
 async def refresh(response: Response,
                   data=Depends(get_payload_refresh),
                   session: AsyncSession = Depends(get_async_session)) -> Token:
