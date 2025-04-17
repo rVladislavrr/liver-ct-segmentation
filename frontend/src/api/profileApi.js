@@ -11,3 +11,13 @@ export const fetchUserProfile = async () => {
   const response = await axios.get(`${API_URL}/photos`, { headers: headers });
   return response.data;
 };
+
+export const savePhotoToProfile = async (photoData) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const response = await axios.post(`${API_URL}/photos/save`, photoData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data;
+};

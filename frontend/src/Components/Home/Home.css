@@ -64,6 +64,45 @@ body {
   font-style: italic;
 }
 
+.file-name {
+  white-space: normal;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-style: italic;
+}
+
+.upl-file-info{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upl-file-info p{
+  font-family: 'Montserrat', sans-serif;
+}
+
+.upl-file-info p span{
+  font-style: italic;
+}
+
+.upl-file-info button{
+  background-color: #8DA9C4;
+  color: white;
+  padding: 1px 12px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.upl-file-info button:hover{
+  background-color:#c70000;
+}
+
 .upload-button {
   background-color: #0b2545;
   color: white;

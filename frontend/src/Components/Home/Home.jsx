@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import './Home.css';
 import PhotoSlider from '../PhotoSlider/PhotoSlider';
 import { sendPhotoId, uploadFile } from '../../api/commonApi';
+import { savePhotoToProfile } from '../../api/profileApi';
 import Header from '../Header/Header';
 import FileUploadSection from '../FileUploadSection/FileUploadSection';
 import useImageCache from '../../hooks/useImageCache';
+
 const Home = () => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -17,8 +19,32 @@ const Home = () => {
   const [resultImage, setResultImage] = useState(null);
   const [isChoosed, setIsChoosed] = useState(false);
   const [imageSettings, setImageSettings] = useState(false);
+  const [fileMeta, setFileMeta] = useState(() => {
+    const isAuthenticated = !!localStorage.getItem('accessToken');
+    if (!isAuthenticated) return null;
+
+    const saved = localStorage.getItem('fileMeta');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const { cacheImage, getCachedImage } = useImageCache();
+
+  useEffect(() => {
+    if (fileMeta) {
+      setUuid(fileMeta.uuid);
+      setNumSlices(fileMeta.numSlices);
+      setIsUploaded(true);
+      setIsChoosed(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (fileMeta) {
+      localStorage.setItem('fileMeta', JSON.stringify(fileMeta));
+    } else {
+      localStorage.removeItem('fileMeta');
+    }
+  }, [fileMeta]);
 
   useEffect(() => {
     const cachedImage = getCachedImage(uuid, photo);
@@ -58,9 +84,17 @@ const Home = () => {
       const { uuid, num_slices } = response;
       setUuid(uuid);
       setNumSlices(num_slices);
-
       localStorage.setItem('uuid', uuid);
       localStorage.setItem('numSlices', num_slices);
+
+      setFileMeta({
+        uuid: response.uuid,
+        numSlices: response.num_slices,
+        filename: file.name,
+        sizeBytes: file.size,
+        lastUploaded: new Date().toISOString(),
+      });
+
       setIsUploaded(true);
       setResultImage(null);
     } catch (error) {
@@ -107,6 +141,26 @@ const Home = () => {
     document.body.removeChild(link);
   };
 
+  const handleSaveToProfile = async (photoData) => {
+    try {
+      await savePhotoToProfile(photoData);
+      console.log('Фотография успешно сохранена в личный кабинет'); // в библиотеку с уведомлениями
+    } catch (error) {
+      console.error('Ошибка сохранения фотографии', error);
+      console.log('Не удалось сохранить фотографию'); // в библиотеку с уведомлениями
+    }
+  };
+
+  const clearFileData = () => {
+    setFile(null);
+    setFileMeta(null);
+    setUuid('');
+    setNumSlices('');
+    setIsUploaded(false);
+    setIsChoosed(false);
+    setResultImage(null);
+  };
+
   return (
     <div className="Home">
       <Header />
@@ -117,6 +171,9 @@ const Home = () => {
         file={file}
         error={error}
         isUploading={isSent}
+        onClear={clearFileData}
+        hasFile={!!fileMeta}
+        fileMeta={fileMeta}
       />
 
       {isUploaded && (
@@ -159,8 +216,18 @@ const Home = () => {
             />
             {imageSettings && (
               <div className="settings-buttons">
-                <button className="settings-button download" onClick={handleDownload}>Скачать</button>
-                <button className="settings-button save">Сохранить в личном кабинете</button>
+                <button
+                  className="settings-button download"
+                  onClick={handleDownload}
+                >
+                  Скачать
+                </button>
+                <button
+                  className="settings-button save"
+                  onClick={() => handleSaveToProfile({ uuid_file: uuid, num_images: photo })}
+                >
+                  Сохранить в личном кабинете
+                </button>
                 <button className="settings-button change">Изменить контур</button>
               </div>
             )}

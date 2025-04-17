@@ -1,4 +1,4 @@
-const FileUploadSection = ({ onFileChange, onUpload, file, error, isUploading }) => (
+const FileUploadSection = ({ onFileChange, onUpload, onClear, file, error, isUploading, hasFile, fileMeta }) => (
   <div className="file-upload-section">
     <div className="file-input-wrapper">
       <input
@@ -17,10 +17,10 @@ const FileUploadSection = ({ onFileChange, onUpload, file, error, isUploading })
 
       {file && (
         <div className="file-info">
-          <span className="file-name">Файл: {file.name}</span>
+          {!hasFile && <span className="file-name"> Файл: {file.name}</span>}
           <button
             onClick={onUpload}
-            disabled={!file || isUploading}
+            disabled={!file || isUploading || hasFile}
             className="upload-button"
           >
             {isUploading ? (
@@ -41,6 +41,14 @@ const FileUploadSection = ({ onFileChange, onUpload, file, error, isUploading })
         </div>
       )}
     </div>
+    {hasFile && fileMeta?.filename && (
+      <div className="upl-file-info">
+        <p>
+          Текущий файл: <span>{fileMeta.filename}</span>
+        </p>
+        <button onClick={onClear}>×</button>
+      </div>
+    )}
     {error && <p className="upload-err-msg">{error}</p>}
   </div>
 );
