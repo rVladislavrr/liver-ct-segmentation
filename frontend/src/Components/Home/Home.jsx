@@ -36,7 +36,7 @@ const Home = () => {
       setIsUploaded(true);
       setIsChoosed(true);
     }
-  }, []);
+  }, [fileMeta]);
 
   useEffect(() => {
     if (fileMeta) {

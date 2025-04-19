@@ -21,3 +21,13 @@ export const savePhotoToProfile = async (photoData) => {
   });
   return response.data;
 };
+
+export const deletePhoto = async (photoUuid) => {
+  try {
+    await axios.delete(`${API_URL}/photos/${photoUuid}/delete`);
+    return true;
+  } catch (error) {
+    console.error('Delete error:', error);
+    throw error;
+  }
+};
