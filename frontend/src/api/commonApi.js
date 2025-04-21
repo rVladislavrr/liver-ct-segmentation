@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -21,9 +22,12 @@ export const uploadFile = async (file) => {
   formData.append('file', file);
   try {
     const response = await axios.post(`${API_URL}/upload`, formData, { headers: headers });
+    toast.success('Файл успешно загружен!');
     return response.data;
   } catch (error) {
     console.error('error', error);
+    const errorMessage = error.response?.data?.detail.msg + `\n(${error.response?.data?.detail?.request_id})` || 'Ошибка при загрузке';
+    toast.error(errorMessage);
     throw error;
   }
 };
@@ -68,13 +72,11 @@ export const login = async (email, password) => {
     console.log(accessToken);
     localStorage.setItem('accessToken', accessToken);
     setupAuthInterceptor(accessToken);
+    toast.success('Вход выполнен!');
     return { success: true, data: response.data };
   } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.response?.data?.message || 'Ошибка сервера. Попробуйте позже.',
-    };
+    const errorMessage = error.response?.data?.detail.msg + `\n(${error.response?.data?.detail?.request_id})` || error.message || 'Ошибка при попытке входа';
+    toast.error(errorMessage);
   }
 };
 
@@ -92,14 +94,13 @@ export const register = async (name, email, password) => {
       const { accessToken } = response.data;
       localStorage.setItem('accessToken', accessToken);
       setupAuthInterceptor(accessToken);
+      toast.success('Вы успешно зарегистрировались!');
     }
 
     return { success: true, data: response.data };
   } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.response?.data?.message || 'Ошибка сервера. Попробуйте позже.',
-    };
+    const errorMessage = error.response?.data?.detail.msg + `\n(${error.response?.data?.detail?.request_id})` || error.message || 'Ошибка при регистрации';
+    toast.error(errorMessage);
   }
 };
 

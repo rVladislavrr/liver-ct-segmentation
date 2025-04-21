@@ -6,6 +6,7 @@ import { savePhotoToProfile } from '../../api/profileApi';
 import Header from '../Header/Header';
 import FileUploadSection from '../FileUploadSection/FileUploadSection';
 import useImageCache from '../../hooks/useImageCache';
+import { toast } from 'react-toastify';
 
 const Home = () => {
   const [file, setFile] = useState(null);
@@ -71,7 +72,7 @@ const Home = () => {
         setIsChoosed(true);
       } else {
         setFile(null);
-        setError('Загрузить можно только .nii файл!');
+        toast.error('Загрузить можно только .nii файл')
       }
     }
   };
@@ -133,6 +134,7 @@ const Home = () => {
 
   const handleDownload = () => {
     if (!resultImage) return;
+    toast.success('Фотография загружена!')
     const link = document.createElement('a');
     link.href = resultImage;
     link.download = `ct_slice_${photo}.png`;
@@ -144,10 +146,8 @@ const Home = () => {
   const handleSaveToProfile = async (photoData) => {
     try {
       await savePhotoToProfile(photoData);
-      console.log('Фотография успешно сохранена в личный кабинет'); // в библиотеку с уведомлениями
     } catch (error) {
       console.error('Ошибка сохранения фотографии', error);
-      console.log('Не удалось сохранить фотографию'); // в библиотеку с уведомлениями
     }
   };
 

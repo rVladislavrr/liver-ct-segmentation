@@ -86,6 +86,19 @@ body {
   font-style: italic;
 }
 
+.upload-err-msg{
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: #be2626;
+  background-color: #fadada;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 26px;
+  text-align: center;
+  width: 90%;
+}
+
 .upl-file-info button{
   background-color: #8DA9C4;
   color: white;

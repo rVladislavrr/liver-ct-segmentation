@@ -2,3 +2,13 @@ body{
   margin: 0;
   padding: 0;
 }
+
+.Toastify__toast--success {
+  background: #6fac71 !important;
+  color: white !important;
+}
+
+.Toastify__toast--error {
+  background: #c94747 !important;
+  color: white !important;
+}

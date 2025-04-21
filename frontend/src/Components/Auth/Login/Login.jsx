@@ -28,14 +28,19 @@ const Login = () => {
     }
 
     setIsLoading(true);
-    const result = await login(formData.email, formData.password);
-
-    if (result.success) {
-      navigate('/');
-    } else {
-      setFormError(result.error);
+    try {
+      const result = await login(formData.email, formData.password);
+  
+      if (result.success) {
+        navigate('/');
+      } else {
+        setFormError(result.error);
+      }
+    } catch (error) {
+      setFormError(error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleChange = (e) => {

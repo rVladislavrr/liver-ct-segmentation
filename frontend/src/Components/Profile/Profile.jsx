@@ -13,6 +13,7 @@ const Profile = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [photosByFile, setPhotosByFile] = useState({});
+  // eslint-disable-next-line
   const [photos, setPhotos] = useState(photosByFile);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({
     isOpen: false,
@@ -46,11 +47,6 @@ const Profile = () => {
     loadProfileData();
   }, []);
 
-  const openModal = (file) => {
-    setSelectedFile(file);
-    setIsModalOpen(true);
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -59,25 +55,44 @@ const Profile = () => {
     try {
       await deletePhoto(photoUuid);
 
-      setPhotos((prev) => {
+      setPhotosByFile((prev) => {
         const updated = { ...prev };
-        updated[fileUuid].photos = updated[fileUuid].photos.filter((p) => p.uuid !== photoUuid);
 
-        if (updated[fileUuid].photos.length === 0) {
-          delete updated[fileUuid];
+        const fileKey = Object.keys(updated).find((key) => updated[key].file_info.uuid === fileUuid);
+
+        if (fileKey) {
+          updated[fileKey].photos = updated[fileKey].photos.filter((p) => p.uuid !== photoUuid);
+
+          if (updated[fileKey].photos.length === 0) {
+            delete updated[fileKey];
+          }
         }
 
         return updated;
       });
 
-      if (selectedFile?.photos.some((p) => p.uuid === photoUuid)) {
-        setSelectedFile((prev) => ({
+      setSelectedFile((prev) => {
+        if (!prev || prev.fileInfo.uuid !== fileUuid) return prev;
+
+        const updatedPhotos = prev.photos.filter((p) => p.uuid !== photoUuid);
+
+        if (updatedPhotos.length === 0) {
+          setIsModalOpen(false);
+          return null;
+        }
+
+        return {
           ...prev,
-          photos: prev.photos.filter((p) => p.uuid !== photoUuid),
-        }));
-      }
-    } catch (error) {
-    }
+          photos: updatedPhotos,
+        };
+      });
+
+      setDeleteConfirmModal({
+        isOpen: false,
+        photoUuid: null,
+        fileUuid: null,
+      });
+    } catch (error) {}
   };
 
   if (loading) {
