@@ -89,10 +89,10 @@
 }
 
 .header-logout-button {
-  background-color: #c70000;
+  background-color: #9b00005b;
   color: white;
-  border: none;
-  padding: 12px 16px;
+  border: 2px solid #9b0000;
+  padding: 10px 14px;
   border-radius: 7px;
   font-family: 'Open Sans', sans-serif;
   font-size: 15px;
@@ -102,9 +102,9 @@
 }
 
 .header-logout-button:hover {
-  background-color: #e40202;
+  background-color: #9b0000;
 }
 
 .header-logout-button:active {
-  background-color: #990404;
+  background-color: #790000;
 }

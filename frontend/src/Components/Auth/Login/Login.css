@@ -1,15 +1,19 @@
+body {
+  background-color: #eef4ed;
+}
+
 .login-container {
   max-width: 400px;
   margin: 100px auto 0 auto;
   padding: 20px;
 }
 
-.title-login{
-    font-family: 'Open Sans', sans-serif;
-    font-size: 30px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 26px;
+.title-login {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 26px;
 }
 
 .auth-header {

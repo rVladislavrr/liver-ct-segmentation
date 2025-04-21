@@ -9,6 +9,9 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      localStorage.removeItem('fileMeta');
+      localStorage.removeItem('uuid');
+      localStorage.removeItem('numSlices');
       setIsAuth(false);
       navigate('/');
     } catch (error) {
