@@ -65,7 +65,7 @@ async def load_files_redis(uuid, image_volume, num_slices, author_id, is_public)
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='Obj is not cached')
+                            detail={"msg": "Obj is not cached",})
 
 
 async def load_result_cached(uuid, num_slices, data):
@@ -78,7 +78,7 @@ async def load_result_cached(uuid, num_slices, data):
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='Obj is not cached')
+                            detail={"msg": "Obj is not cached",})
 
 
 async def get_result_cached(uuid, num_slices):
@@ -97,7 +97,8 @@ async def get_result_cached(uuid, num_slices):
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='redis dead')
+                            detail={"msg": "redis dead",})
+
 
 async def get_metadata(uuid):
     try:
@@ -110,7 +111,8 @@ async def get_metadata(uuid):
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='redis dead')
+                            detail={"msg": "redis dead",})
+
 
 async def get_files_redis(uuid):
     try:
@@ -123,6 +125,7 @@ async def get_files_redis(uuid):
     except Exception as e:
         database_logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='redis dead')
+                            detail={"msg": "redis dead",})
+
 
 redis_client = RedisClient()

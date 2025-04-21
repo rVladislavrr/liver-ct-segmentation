@@ -1,7 +1,7 @@
 import jwt
 
 from datetime import timedelta, datetime, timezone
-from fastapi import Depends, HTTPException, status, Request, UploadFile, File,Response
+from fastapi import Depends, HTTPException, status, Request, UploadFile, File, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.config import settings
@@ -13,6 +13,7 @@ ACCESS_TOKEN_TYPE = "access"
 REFRESH_TOKEN_TYPE = "refresh"
 
 http_bearer = HTTPBearer(auto_error=False)
+
 
 def encode_jwt(
         payload: dict,
@@ -73,13 +74,14 @@ def create_tokens(user_inf, response: Response) -> Token:
         accessToken=access_token,
     )
 
+
 def validate_token_type(
         payload: dict,
         token_type: str,
 ):
     if payload.get(TOKEN_TYPE_FIELD) != token_type:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"token invalid {token_type}"
-                                                                             f" != {payload.get(TOKEN_TYPE_FIELD)}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": f"token invalid {token_type}"
+                                                                                     f" != {payload.get(TOKEN_TYPE_FIELD)}", })
 
 
 def decode_jwt(
@@ -98,7 +100,8 @@ def decode_jwt_token(token, token_type):
         payload['uuid'] = payload['sub']
         return payload
     except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='invalid token')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": f"invalid token"})
+
 
 async def get_payload_or_none(
         credentials: HTTPAuthorizationCredentials | str = Depends(http_bearer)
@@ -111,7 +114,7 @@ async def get_payload_or_none(
 
         return UserInfo.model_validate(decode_jwt_token(token, ACCESS_TOKEN_TYPE), from_attributes=True)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": f"invalid token"})
 
 
 async def get_payload_access(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)) -> UserInfo:
@@ -127,7 +130,7 @@ async def get_payload_refresh(request: Request) -> (str, str):
     token = request.cookies.get(settings.auth_jwt.key_cookie)
 
     if token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not found refresh token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": f"Not found refresh token"})
 
     payload = decode_jwt_token(token, REFRESH_TOKEN_TYPE)
     return payload, request_id
@@ -136,12 +139,13 @@ async def get_payload_refresh(request: Request) -> (str, str):
 async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
         return userInf
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not active')
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={"msg": 'User not active'})
+
 
 async def get_verify_payload(userInf=Depends(get_active_payload)) -> UserInfo:
     if userInf.is_verified:
         return userInf
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not verified')
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={"msg": 'User not verified'})
 
 
 async def get_users_payload(token: str) -> UserInfo:

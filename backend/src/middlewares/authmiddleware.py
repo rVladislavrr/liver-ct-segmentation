@@ -1,4 +1,3 @@
-
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, HTTPException
 from starlette.responses import JSONResponse
@@ -23,6 +22,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
         try:
+            if auth_header is None:
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": {"msg": "Invalid token",
+                                   "request_id": request.state.request_id},
+                    }
+                )
             token = auth_header.split(" ")[1]
         except Exception as e:
             api_logger.error(
@@ -33,15 +40,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=401,
                 content={
-                    "detail": "Invalid token",
-                    "request_id": request.state.request_id,
+                    "detail": {"msg": "Invalid token",
+                               "request_id": request.state.request_id},
                 }
             )
         try:
             user = await get_users_payload(token)
             request.state.user_id = user.uuid
             request.state.user = user
-            return await call_next(request)
         except HTTPException:
             api_logger.error(
                 "Failed to auth, token invalid or expired",
@@ -50,8 +56,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=401,
                 content={
-                    "detail": "Invalid token",
-                    "request_id": request.state.request_id,
+                    "detail": {"msg": "Invalid token",
+                               "request_id": request.state.request_id}
                 }
             )
         except Exception as e:
@@ -60,4 +66,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 extra={"request_id": request.state.request_id},
                 exc_info=e,
             )
-            raise e
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "detail": {"msg": "Invalid token",
+                               "request_id": request.state.request_id}
+                }
+            )
+        return await call_next(request)

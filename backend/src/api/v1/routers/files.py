@@ -31,7 +31,7 @@ async def check_nii_file(file: UploadFile = File(...)):
         api_logger.warning("Invalid file format: %s", file.filename)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only .nii files are supported"
+            detail={"msg": "Only .nii files are supported"}
         )
 
     try:
@@ -48,7 +48,7 @@ async def check_nii_file(file: UploadFile = File(...)):
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid .nii file"
+            detail={"msg": "Invalid .nii file"}
         )
 
 
@@ -109,7 +109,7 @@ async def upload_file(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="File upload failed"
+            detail={"msg": "File upload failed", 'request_id': request_id}
         )
 
 
@@ -142,11 +142,12 @@ async def predict(
             else:
                 if predict_request.num_images > metadata['num_slices']:
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                        detail='num_images > num_slices in file')
+                                        detail={"msg": 'num_images > num_slices in file', 'request_id': request_id})
 
                 file_bytes = await get_files_redis(file_uuid)
         else:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not public file")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={"msg": "Not public file",
+                                                                               'request_id': request_id})
     else:
 
         api_logger.info(

@@ -120,7 +120,7 @@ class S3Client:
                     "request_id": request_id,
                 }
             )
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found in S3")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"msg": "Not found in S3",})
         except Exception as e:
             s3_logger.error(
                 "Failed to download file from S3",
@@ -133,6 +133,52 @@ class S3Client:
                 }
             )
             raise
+
+    async def delete_file(
+            self,
+            obj_name,
+            bucket_name,
+            request_id,
+    ) -> None:
+        print("1.2.0")
+        try:
+            print("1.2.0.1")
+            async with self._get_client() as client:
+                print('1.2.1')
+                await client.delete_object(
+                    Bucket=bucket_name,
+                    Key=obj_name
+                )
+                print('1.2.2')
+                s3_logger.info(
+                    "File deleted from S3",
+                    extra={
+                        "object_name": obj_name,
+                        "bucket": bucket_name,
+                        "request_id": request_id,
+                    }
+                )
+        except ClientError as e:
+            s3_logger.warning(
+                "Failed to delete file from S3",
+                extra={
+                    "object_name": obj_name,
+                    "bucket": bucket_name,
+                    "error": str(e),
+                    "request_id": request_id,
+                }
+            )
+        except Exception as e:
+            s3_logger.error(
+                "Unexpected error while deleting file from S3",
+                exc_info=e,
+                extra={
+                    "object_name": obj_name,
+                    "bucket": bucket_name,
+                    "error": str(e),
+                    "request_id": request_id,
+                }
+            )
 
 
 s3_client = S3Client()
@@ -193,7 +239,7 @@ async def upload_files_to_s3(
 
 async def create_add_photo_s3(obj, request_id):
     try:
-        obj.name = f'{obj.author_uuid}/{obj.file_uuid}_{obj.num_images}.png'
+        obj.name = f'{obj.author_uuid}/{obj.uuid}.png'
         file_bytes, flag = await create_save_photo(obj, request_id)
         if file_bytes is None:
             s3_file_bytes = await s3_client.download_file(
@@ -224,3 +270,10 @@ async def create_add_photo_s3(obj, request_id):
                    "photo_uuid": obj.uuid,
                    "request_id": request_id, }
         )
+
+async def delete_photo_s3(photo_id, user_id, request_id):
+    print('1.1')
+    name = f'{user_id}/{photo_id}.png'
+    print('1.2', name)
+    await s3_client.delete_file(name, settings.S3_BUCKET_NAME, request_id)
+    print('1.3')

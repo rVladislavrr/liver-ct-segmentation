@@ -39,7 +39,7 @@ async def logout(request: Request, response: Response):
     if request.cookies.get(settings.auth_jwt.key_cookie):
         response.delete_cookie(settings.auth_jwt.key_cookie)
     return {
-        'detail': 'ok'
+        'detail': {"msg": "Ok", "request_id": request.state.request_id}
     }
 
 

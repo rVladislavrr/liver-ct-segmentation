@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import Any
 
+from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
@@ -8,9 +10,11 @@ from sqlalchemy.orm import selectinload
 
 from src.config import settings
 from src.db.base import BaseManager
+from src.db.db import get_async_session
 from src.logger import database_logger
 from src.models import Users, Photos, UserSavedPhoto
 from src.schemas.photos import PhotoCreate
+from src.service.s3 import delete_photo_s3
 
 
 class PhotosManager(BaseManager):
@@ -27,10 +31,11 @@ class PhotosManager(BaseManager):
                 num_images=photo_inf.num_images,
                 author_uuid=author_id,
                 file_uuid=photo_inf.uuid_file,
-                url=f'{settings.S3_ENDPOINT}/{author_id}/{photo_inf.uuid_file}_{photo_inf.num_images}.png',
+                url=f'.png',
             )
             session.add(photoOrm)
             await session.flush()
+            photoOrm.url = f'{settings.S3_ENDPOINT}/{author_id}/{photoOrm.uuid}.png'
 
             user_photo = UserSavedPhoto(
                 user_uuid=author_id,
@@ -53,7 +58,7 @@ class PhotosManager(BaseManager):
                     }
                 )
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                    detail="This photo already exists")
+                                    detail={"msg": "This photo already exists", "request_id": request_id})
 
             database_logger.error(
                 "IntegrityError (idk)",
@@ -66,7 +71,8 @@ class PhotosManager(BaseManager):
                 exc_info=e,
             )
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="Could not create the saved photo")
+                                detail={"msg": "Could not create the saved photo",
+                                        "request_id": request_id})
         except Exception as e:
             await session.rollback()
             database_logger.error(
@@ -80,7 +86,8 @@ class PhotosManager(BaseManager):
                 exc_info=e,
             )
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="Could not create the saved photo")
+                                detail={"msg": "Could not create the saved photo",
+                                        "request_id": request_id})
         await session.commit()
         await session.refresh(photoOrm)
 
@@ -101,6 +108,43 @@ class PhotosManager(BaseManager):
                                                                    .selectinload(Photos.file))
         res = (await session.execute(query)).scalar()
         return res
+
+    @staticmethod
+    async def delete_photo(session: AsyncSession, photo_id: UUID4, user_id: str, request_id):
+        query = (
+            select(UserSavedPhoto)
+            .join(UserSavedPhoto.user)
+            .where(
+                Users.uuid == user_id,
+                UserSavedPhoto.photo_uuid == photo_id
+            )
+        )
+        userPhoto: UserSavedPhoto | None = (await session.execute(query)).scalar()
+
+        if userPhoto is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={'msg': "Photo does not exist",
+                                                                               'request_id': request_id})
+        await session.delete(userPhoto)
+        await session.commit()
+        userPhoto.delete_at = datetime.now()
+        return userPhoto
+
+    @staticmethod
+    async def delete_photos_all(photo_id: UUID4, user_id, request_id):
+        async for session in get_async_session():
+            query = select(UserSavedPhoto).where(UserSavedPhoto.photo_uuid == photo_id)
+            res = [i for i in (await session.execute(query)).scalars()]
+
+            if not res:
+                try:
+                    photo = await session.get(Photos, photo_id)
+                except Exception as e:
+                    raise e
+                await session.delete(photo)
+                await session.commit()
+                print('1')
+                await delete_photo_s3(photo_id, user_id, request_id)
+                print('2')
 
 
 photos_manager = PhotosManager()

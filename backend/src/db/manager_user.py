@@ -24,7 +24,8 @@ class UsersManager(BaseManager):
                     "request_id": request_id,
                 }
             )
-            raise HTTPException(status_code=409, detail="User already exists")
+            raise HTTPException(status_code=409, detail={"msg": "User already exists",
+                                                         "request_id": request_id})
 
     async def create(self, session: AsyncSession, data: UserCreate, request_id):
         await self.conflict_user(data.email, session, request_id)
@@ -59,7 +60,8 @@ class UsersManager(BaseManager):
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create file record in database"
+                detail={"msg": "Failed to create file record in database",
+                        "request_id": request_id}
             )
 
     @staticmethod
@@ -75,7 +77,8 @@ class UsersManager(BaseManager):
                         "request_id": request_id,
                     }
                 )
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email or password wrong')
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": "Email or password wrong",
+                                                                                      "request_id": request_id})
 
             enter_hash_password = hashlib.sha256(user_data.password.encode('utf-8')).hexdigest()
             if not user or enter_hash_password != user.hash_password:
@@ -87,7 +90,8 @@ class UsersManager(BaseManager):
                         "request_id": request_id,
                     }
                 )
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email or password wrong')
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": "Email or password wrong",
+                                                                                      "request_id": request_id})
 
             database_logger.info(
                 "User authorization successfully",
@@ -127,7 +131,6 @@ class UsersManager(BaseManager):
             user = await session.get(Users, user_data.get('uuid'))
 
             if user is None:
-
                 database_logger.warning(
                     "User not found",
                     extra={
@@ -135,7 +138,9 @@ class UsersManager(BaseManager):
                         "request_id": request_id,
                     }
                 )
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User with this uuid not found")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail={"msg": "User with this uuid not found",
+                                            "request_id": request_id})
 
             return user
         except HTTPException as httpE:

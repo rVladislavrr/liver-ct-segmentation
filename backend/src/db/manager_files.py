@@ -59,7 +59,7 @@ class FileManager(BaseManager):
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create file record in database"
+                detail={"msg": "Failed to create file record in database", "request_id": request_id}
             )
 
     async def get_metafile(
@@ -82,7 +82,7 @@ class FileManager(BaseManager):
                 )
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="File not found"
+                    detail={"msg": "File not found", "request_id": request_id}
                 )
 
             if num_images > file_db.num_slices:
@@ -97,7 +97,8 @@ class FileManager(BaseManager):
                 )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail='Requested number of images exceeds available slices in file'
+                    detail={"msg": 'Requested number of images exceeds available slices in file',
+                            "request_id": request_id}
                 )
 
             database_logger.info(
@@ -123,7 +124,8 @@ class FileManager(BaseManager):
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Failed to retrieve file metadata'
+                detail={"msg": 'Failed to retrieve file metadata',
+                            "request_id": request_id}
             )
 
 

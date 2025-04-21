@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, BackgroundTasks, Depends, HTTPException, status
+from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.db import get_async_session
@@ -37,7 +38,7 @@ async def saved_photos(
         if metadata_file.get('num_slices') < photo_data.num_images:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail='Requested number of images exceeds available slices in file'
+                detail={"msg": 'Requested number of images exceeds available slices in file', "request_id": request_id},
             )
 
     # добавление инфы в бд что пользователь сохранил
@@ -52,3 +53,15 @@ async def get_photo(request: Request, session: AsyncSession = Depends(get_async_
     request_id = request.state.request_id
     user_id = request.state.user_id
     return await photos_manager.get_photo_with_author(session, user_id, request_id)
+
+@router.delete('/{photo_id}/delete')
+async def delete_photo(photo_id: UUID4,
+                       background_task: BackgroundTasks,
+                       request: Request,
+                       session: AsyncSession = Depends(get_async_session)):
+    request_id = request.state.request_id
+    user_id = request.state.user_id
+    photo_delete = await photos_manager.delete_photo(session, photo_id, user_id, request_id)
+    background_task.add_task(photos_manager.delete_photos_all, photo_id, user_id, request_id)
+
+    return photo_delete
