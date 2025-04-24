@@ -1,7 +1,7 @@
 import time
 from uuid import uuid4
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request, HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from src.logger import api_logger
@@ -31,8 +31,8 @@ class LogExecutionTimeMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=500,
                 content={
-                    "detail": "Internal server error",
-                    "request_id": request_id
+                    "detail": {"msg": "Internal server error",
+                               "request_id": request.state.request_id}
                 }
             )
 

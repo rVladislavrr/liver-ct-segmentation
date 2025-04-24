@@ -19,6 +19,9 @@ origins = [
 ]
 app.include_router(router, tags=['API model'])
 
+app.add_middleware(AuthMiddleware)
+app.add_middleware(LogExecutionTimeMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -26,6 +29,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(LogExecutionTimeMiddleware)
-app.add_middleware(AuthMiddleware)
