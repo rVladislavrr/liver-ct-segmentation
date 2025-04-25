@@ -15,6 +15,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 or "/auth/" in request.url.path):
             return await call_next(request)
 
+        response_401 = JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": {"msg": "Invalid token",
+                                   "request_id": request.state.request_id},
+                    }
+                )
+
         auth_header = request.headers.get("Authorization")
 
         if request.url.path.endswith('/predict', ) or request.url.path.endswith('/upload'):
@@ -23,45 +31,30 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         try:
             if auth_header is None:
-                return JSONResponse(
-                    status_code=401,
-                    content={
-                        "detail": {"msg": "Invalid token",
-                                   "request_id": request.state.request_id},
-                    }
-                )
-            token = auth_header.split(" ")[1]
+                return response_401
+            if " " in auth_header:
+                token = auth_header.split(" ")[1]
+            else:
+                return response_401
         except Exception as e:
             api_logger.error(
                 "Failed to auth",
                 extra={"request_id": request.state.request_id},
                 exc_info=e,
             )
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": {"msg": "Invalid token",
-                               "request_id": request.state.request_id},
-                }
-            )
+            return response_401
         try:
             user = await get_users_payload(token)
             request.state.user_id = user.uuid
             request.state.user = user
         except HTTPException:
-            api_logger.error(
+            api_logger.warning(
                 "Failed to auth, token invalid or expired",
                 extra={"request_id": request.state.request_id},
             )
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": {"msg": "Invalid token",
-                               "request_id": request.state.request_id}
-                }
-            )
+            return response_401
         except Exception as e:
-            api_logger.error(
+            api_logger.error(-
                 str(e),
                 extra={"request_id": request.state.request_id},
                 exc_info=e,

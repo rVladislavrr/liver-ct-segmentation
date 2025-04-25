@@ -1,6 +1,6 @@
 from fastapi import (APIRouter, Response,
                      Depends, Request,
-                     status, HTTPException)
+                     status)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
