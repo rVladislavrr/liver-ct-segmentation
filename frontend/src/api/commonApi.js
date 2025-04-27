@@ -12,6 +12,57 @@ const api = axios.create({
 
 let authInterceptorId = null;
 
+export const getCleanSlice = async (uuid, sliceIndex) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  try {
+    const response = await api.get(`photos/${uuid}/${sliceIndex}/photos`, {
+      responseType: 'blob',
+      headers: headers,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch clean slice');
+  }
+};
+
+export const getContourPoints = async (uuid, sliceIndex) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  try {
+    const response = await api.get(`photos/${uuid}/${sliceIndex}/contours`, { headers: headers });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch contour points');
+  }
+};
+
+export const saveContourPoints = async (uuid, sliceIndex, points) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  try {
+    const response = await api.post(
+      `photos/${uuid}/${sliceIndex}/save`,
+      {
+        points,
+      },
+      { headers: headers }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to save contour');
+  }
+};
+
 export const uploadFile = async (file) => {
   const accessToken = localStorage.getItem('accessToken');
   const headers = {};
