@@ -7,3 +7,4 @@ class File(BaseModel):
     size_bytes: int = Field(..., gt=0)
     num_slices: int = Field(..., gt=0)
     is_public: bool
+    author_id: None | UUID4 = None
