@@ -1,5 +1,5 @@
 import io
-import warnings
+import time
 
 import cv2
 import torch
@@ -9,6 +9,7 @@ import segmentation_models_pytorch as smp
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import matplotlib.pyplot as plt
+from skimage import measure
 
 
 class ModelSegmentationManager:
@@ -51,8 +52,10 @@ class ModelSegmentationManager:
 
     @staticmethod
     def preprocess_im(im):
-        im = np.clip(im, 0, None)  # Убираем все отрицательные значения
-        max_val = np.max(im) or 1  # Защита от деления на 0
+        if torch.is_tensor(im):
+            im = im.detach().cpu().numpy()
+        im = np.clip(im, 0, None)
+        max_val = np.max(im) or 1
         return im / max_val
 
     @staticmethod
@@ -64,7 +67,7 @@ class ModelSegmentationManager:
 
         return nii_image.get_fdata().astype('float32')
 
-    def __apply_transformations(self, im):
+    def apply_transformations(self, im):
         transformed = self.trans(image=im)
         return transformed["image"].unsqueeze(0).to(self.device, dtype=torch.float32)  # Сразу отправляем на GPU
 
@@ -95,18 +98,105 @@ class ModelSegmentationManager:
 
         return buf.getvalue()
 
-    def get_result(self, image_volume, num_images):
+    def __draw_with_user_contours(self, image_slice, user_contours):
+        """
+        Рисует изображение с множеством пользовательских контуров.
+        :param image_slice: NumPy-массив одного среза (H x W)
+        :param user_contours: Список контуров [[ [x, y], [x2, y2], ... ], [ ... ], ...]
+        :return: PNG-картинка как bytes
+        """
+
+        # Удаляем лишнюю размерность, если есть
+        if image_slice.ndim == 3 and image_slice.shape[0] == 1:
+            image_slice = image_slice.squeeze(0)
+
+        if image_slice.ndim != 2:
+            raise ValueError(f"Expected 2D image slice, got shape {image_slice.shape}")
+
+        image_norm = self.preprocess_im(image_slice)
+        image_np = (image_norm * 255).astype(np.uint8)
+
+        mask_shape = image_np.shape
+        contour_mask = np.zeros((mask_shape[0], mask_shape[1], 3), dtype=np.uint8)
+
+        for contour in user_contours:
+            if len(contour) < 2:
+                continue
+            points = np.array(contour, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.polylines(contour_mask, [points], isClosed=True, color=(255, 0, 0), thickness=1)
+
+        image_color = cv2.cvtColor(image_np, cv2.COLOR_GRAY2BGR)
+        combined = cv2.addWeighted(image_color, 1.0, contour_mask, 1.0, 0)
+
+        fig, ax = plt.subplots(figsize=(combined.shape[1] / 100, combined.shape[0] / 100), dpi=100)
+        ax.axis("off")
+        ax.imshow(combined)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, transparent=True)
+        plt.close(fig)
+        buf.seek(0)
+
+        return buf.getvalue()
+
+    def pred_image(self, image_volume, num_images):
         image = image_volume[:, :, num_images]
-        image = self.__apply_transformations(image)
+        image = self.apply_transformations(image)
+        return image
+
+    def get_result_contours(self, image):
+        with torch.no_grad():
+            y_pred = torch.sigmoid(self.model(image)) > 0.7
+        contour = self.__find_contours(y_pred[0])
+        contours = measure.find_contours(contour, level=0.7)
+        contours_list = [[[int(point[1]), int(point[0])] for point in contour] for contour in contours]
+        return contours_list
+
+    def create_photo_with_contours(self, image, contours_list):
+        result_img = self.__draw_with_user_contours(image[0], contours_list)
+        return result_img
+
+    def get_result(self, image_volume, num_images):
+        time_start1 = time.time()
+        image = image_volume[:, :, num_images]
+        image = self.apply_transformations(image)
 
         with torch.no_grad():
             y_pred = torch.sigmoid(self.model(image)) > 0.7  # 0.5
             # y_pred = self.__postprocess_mask(y_pred)  # Очищаем маску  # Прямо в одном вызове
 
         contour = self.__find_contours(y_pred[0])
-        result_img = self.__display_results(image[0], contour)
+        print(time.time() - time_start1)
 
-        return result_img
+        def mask_to_contour(mask: np.ndarray):
+            contours = measure.find_contours(mask, level=0.7)
+            # Переводим в формат [[x, y], [x, y], ...]
+            contours_list = [[[int(point[1]), int(point[0])] for point in contour] for contour in contours]
+            return contours_list
+            # with open("contours.json", "w") as f:
+            #     json.dump(contours_list, f, indent=2)
+
+        new_contour = mask_to_contour(contour)
+        time_start = time.time()
+        result_img = self.__display_results(image[0], contour)
+        result_img = self.__draw_with_user_contours(image[0], new_contour)
+        print(time.time() - time_start)
+
+        return result_img, new_contour
+
+    @staticmethod
+    def get_photo(image):
+        image_np = image[0].squeeze(0).cpu().numpy()
+        fig, ax = plt.subplots(figsize=(image_np.shape[1] / 100, image_np.shape[0] / 100), dpi=100)
+
+        ax.axis("off")
+        ax.imshow(image_np, cmap="gray")
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, transparent=True)
+        plt.close(fig)
+        buf.seek(0)
+        return buf.getvalue()
 
 
 modelManager = ModelSegmentationManager()

@@ -250,7 +250,7 @@ async def create_add_photo_s3(obj, request_id):
             file_bytes = pickle.load(io.BytesIO(s3_file_bytes))
 
         if not flag:
-            file_bytes = modelManager.get_result(file_bytes, obj.num_images)
+            file_bytes, _ = modelManager.get_result(file_bytes, obj.num_images)
 
         await s3_client.upload_file(file_bytes, obj.name,
                                     settings.S3_BUCKET_NAME, request_id)
