@@ -7,6 +7,7 @@ import Header from '../Header/Header';
 import FileUploadSection from '../FileUploadSection/FileUploadSection';
 import useImageCache from '../../hooks/useImageCache';
 import { toast } from 'react-toastify';
+import ContourEditorModal from '../ContourEditorModal/ContourEditorModal';
 
 const Home = () => {
   const [file, setFile] = useState(null);
@@ -27,6 +28,8 @@ const Home = () => {
     const saved = localStorage.getItem('fileMeta');
     return saved ? JSON.parse(saved) : null;
   });
+  const [isContourModalOpen, setIsContourModalOpen] = useState(false);
+  const [contourPoints, setContourPoints] = useState([]);
 
   const { cacheImage, getCachedImage } = useImageCache();
 
@@ -72,7 +75,7 @@ const Home = () => {
         setIsChoosed(true);
       } else {
         setFile(null);
-        toast.error('Загрузить можно только .nii файл')
+        toast.error('Загрузить можно только .nii файл');
       }
     }
   };
@@ -134,7 +137,7 @@ const Home = () => {
 
   const handleDownload = () => {
     if (!resultImage) return;
-    toast.success('Фотография загружена!')
+    toast.success('Фотография загружена!');
     const link = document.createElement('a');
     link.href = resultImage;
     link.download = `ct_slice_${photo}.png`;
@@ -159,6 +162,14 @@ const Home = () => {
     setIsUploaded(false);
     setIsChoosed(false);
     setResultImage(null);
+  };
+
+  const handleEditContour = async () => {
+    if (!localStorage.getItem('accessToken')) {
+      toast.error('Для редактирования контура необходимо авторизоваться');
+      return;
+    }
+    setIsContourModalOpen(true);
   };
 
   return (
@@ -228,12 +239,26 @@ const Home = () => {
                 >
                   Сохранить в личном кабинете
                 </button>
-                <button className="settings-button change">Изменить контур</button>
+                <button
+                  className="settings-button change"
+                  onClick={handleEditContour}
+                >
+                  Изменить контур
+                </button>
               </div>
             )}
           </div>
         )}
       </div>
+      {isContourModalOpen && (
+        <ContourEditorModal
+          uuid={uuid}
+          sliceIndex={photo}
+          isOpen={isContourModalOpen}
+          onClose={() => setIsContourModalOpen(false)}
+          onSave={() => toast.success('Контур успешно сохранён')}
+        />
+      )}
     </div>
   );
 };
