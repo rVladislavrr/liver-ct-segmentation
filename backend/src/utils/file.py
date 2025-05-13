@@ -10,8 +10,8 @@ from src.service.redis_conn import get_metadata, get_files_redis, load_files_red
 from src.service.s3 import s3_client
 
 
-async def get_file_bytes(background_task, file_uuid, session, request_id, num_images: int = 0,
-                         user_id: str = '', metadata=None) -> bytes:
+async def get_file_bytes(file_uuid, session, request_id, num_images: int = 0,
+                         user_id: str = '', metadata=None, background_task=None) -> bytes:
     if metadata is None:
         metadata = await get_metadata(file_uuid)
     if metadata:
@@ -44,8 +44,9 @@ async def get_file_bytes(background_task, file_uuid, session, request_id, num_im
         )
 
         file_bytes = pickle.load(io.BytesIO(s3_file_bytes))
-        background_task.add_task(load_files_redis, file_db.uuid,
-                                 file_bytes, file_db.num_slices,
-                                 str(file_db.author_id), file_db.is_public)
+        if background_task:
+            background_task.add_task(load_files_redis, file_db.uuid,
+                                     file_bytes, file_db.num_slices,
+                                     str(file_db.author_id), file_db.is_public)
 
     return file_bytes

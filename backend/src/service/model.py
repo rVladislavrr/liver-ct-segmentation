@@ -149,7 +149,18 @@ class ModelSegmentationManager:
             y_pred = torch.sigmoid(self.model(image)) > 0.7
         contour = self.__find_contours(y_pred[0])
         contours = measure.find_contours(contour, level=0.7)
-        contours_list = [[[int(point[1]), int(point[0])] for point in contour] for contour in contours]
+        mass_check = set()
+        contours_list = []
+        for contour in contours:
+            new_counter = []
+            for point in contour:
+                tupl = (round(point[1], 1), round(point[0], 1))
+                if tupl not in mass_check:
+                    mass_check.add(tupl)
+                    new_counter.append(list(tupl))
+            contours_list.append(new_counter)
+
+        # contours_list = [[[int(point[1]), int(point[0])] for point in contour] for contour in contours]
         return contours_list
 
     def create_photo_with_contours(self, image, contours_list):
@@ -173,8 +184,6 @@ class ModelSegmentationManager:
             # Переводим в формат [[x, y], [x, y], ...]
             contours_list = [[[int(point[1]), int(point[0])] for point in contour] for contour in contours]
             return contours_list
-            # with open("contours.json", "w") as f:
-            #     json.dump(contours_list, f, indent=2)
 
         new_contour = mask_to_contour(contour)
         time_start = time.time()

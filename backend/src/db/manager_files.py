@@ -1,6 +1,5 @@
 from fastapi import HTTPException, status
 
-from src.config import settings
 from src.db.base import BaseManager
 from src.logger import database_logger
 from src.models import Files

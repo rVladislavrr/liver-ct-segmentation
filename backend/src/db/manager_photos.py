@@ -12,9 +12,9 @@ from src.config import settings
 from src.db.base import BaseManager
 from src.db.db import get_async_session
 from src.logger import database_logger
-from src.models import Users, Photos, UserSavedPhoto
+from src.models import Users, Photos, UserSavedPhoto, Contours
 from src.schemas.photos import PhotoCreate
-from src.service.s3 import delete_photo_s3
+from src.utils.s3_jobs import delete_photo_s3
 
 
 class PhotosManager(BaseManager):
@@ -105,7 +105,8 @@ class PhotosManager(BaseManager):
     @staticmethod
     async def get_photo_with_author(session: AsyncSession, user_id: str, request_id) -> Any:
         query = select(Users).where(Users.uuid == user_id).options(selectinload(Users.saved_photos_direct)
-                                                                   .selectinload(Photos.file))
+                                                                   .selectinload(Photos.file), selectinload(Users.contours).
+                                                                   selectinload(Contours.file))
         res = (await session.execute(query)).scalar()
         return res
 

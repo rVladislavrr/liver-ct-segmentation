@@ -1,5 +1,3 @@
-import time
-
 from fastapi import (
     APIRouter, UploadFile, File, Depends,
     BackgroundTasks, HTTPException,
@@ -17,9 +15,9 @@ from src.service.redis_conn import (
     get_result_cached,
     load_result_cached, get_metadata, load_contours_cached, get_contours_cached
 )
-from src.service.s3 import upload_files_to_s3
 from src.schemas import files
 from src.utils.file import get_file_bytes
+from src.utils.s3_jobs import upload_files_to_s3
 
 router = APIRouter()
 
@@ -141,19 +139,15 @@ async def predict(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={'msg': 'Forbidden file not is_public',
                                                                                "request_id": request_id})
 
-    file_bytes = await get_file_bytes(background_task, file_uuid=file_uuid,
+    file_bytes = await get_file_bytes(background_task = background_task, file_uuid=file_uuid,
                                       session=session, request_id=request_id,
                                       num_images=predict_request.num_images, user_id=user_id,
                                       metadata=metadata)
 
     img = modelManager.pred_image(file_bytes, predict_request.num_images)
-    time1 = time.time()
     contours = await get_contours_cached(file_uuid, predict_request.num_images)
-    print(time.time()-time1)
     if contours is None:
-        time1 = time.time()
         contours = modelManager.get_result_contours(img)
-        print(time.time()-time1)
         background_task.add_task(load_contours_cached, file_uuid, predict_request.num_images, contours)
 
     result_img = modelManager.create_photo_with_contours(img, contours)

@@ -1,17 +1,6 @@
 version: "3.8"
 
 services:
-  app:
-    image: cr.yandex/<registry-id>/<image-name>:<tag>
-    container_name: segmentation_app
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - .env
-    ports:
-      - "8000:8000"
-    restart: unless-stopped
   postgres:
     image: postgres:latest
     container_name: postgres_segmentation

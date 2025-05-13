@@ -1,14 +1,12 @@
-import pickle
+
 from contextlib import asynccontextmanager
-import io
 from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, status, BackgroundTasks
+from fastapi import HTTPException, status
 
 from src.config import settings
 from src.logger import s3_logger
-from src.service.model import modelManager
-from src.utils.photo_add_create import create_save_photo
+
 
 
 class S3Client:
@@ -120,7 +118,7 @@ class S3Client:
                     "request_id": request_id,
                 }
             )
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"msg": "Not found in S3",})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"msg": "Not found in S3", })
         except Exception as e:
             s3_logger.error(
                 "Failed to download file from S3",
@@ -183,97 +181,3 @@ class S3Client:
 
 s3_client = S3Client()
 
-
-async def upload_files_to_s3(
-        background_tasks: BackgroundTasks,
-        obj_name,
-        file_bytes,
-        image_volume,
-        request_id,
-) -> None:
-    try:
-        background_tasks.add_task(
-            s3_client.upload_file,
-            file_obj=file_bytes,
-            obj_name=obj_name,
-            bucket_name=settings.S3_PRIVATE_BUCKET_NAME,
-            request_id=request_id
-        )
-
-        buffer = io.BytesIO()
-        pickle.dump(image_volume, buffer)
-        buffer.seek(0)
-
-        background_tasks.add_task(
-            s3_client.upload_file,
-            file_obj=buffer.getvalue(),
-            obj_name=f"{obj_name}.processed",
-            bucket_name=settings.S3_PRIVATE_BUCKET_NAME,
-            request_id=request_id
-        )
-
-        s3_logger.info(
-            "Files scheduled for upload to S3",
-            extra={
-                "object_name": obj_name,
-                "file_size": len(file_bytes),
-                "processed_size": buffer.getbuffer().nbytes,
-                "request_id": request_id,
-            }
-        )
-    except Exception as e:
-        s3_logger.error(
-            "Failed to schedule S3 upload",
-            exc_info=e,
-            extra={
-                "object_name": obj_name,
-                "error": str(e),
-                "request_id": request_id,
-            }
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to schedule file upload"
-        )
-
-
-async def create_add_photo_s3(obj, request_id):
-    try:
-        obj.name = f'{obj.author_uuid}/{obj.uuid}.png'
-        file_bytes, flag = await create_save_photo(obj, request_id)
-        if file_bytes is None:
-            s3_file_bytes = await s3_client.download_file(
-                f"files/{obj.file_uuid}.nii.processed",
-                settings.S3_PRIVATE_BUCKET_NAME,
-                request_id
-            )
-            file_bytes = pickle.load(io.BytesIO(s3_file_bytes))
-
-        if not flag:
-            file_bytes, _ = modelManager.get_result(file_bytes, obj.num_images)
-
-        await s3_client.upload_file(file_bytes, obj.name,
-                                    settings.S3_BUCKET_NAME, request_id)
-        s3_logger.info(
-            "Images scheduled for upload to S3",
-            extra={
-                "object_name": obj.name,
-                "photo_uuid": obj.uuid,
-                "request_id": request_id,
-            }
-        )
-    except Exception as e:
-        s3_logger.error(
-            "Failed to schedule S3 upload",
-            exc_info=e,
-            extra={"object_name": obj.name,
-                   "photo_uuid": obj.uuid,
-                   "request_id": request_id, }
-        )
-
-async def delete_photo_s3(photo_id, user_id, request_id):
-    print('1.1')
-    name = f'{user_id}/{photo_id}.png'
-    print('1.2', name)
-    await s3_client.delete_file(name, settings.S3_BUCKET_NAME, request_id)
-    print('1.3')
