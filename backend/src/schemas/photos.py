@@ -20,3 +20,16 @@ class PhotoSave(BaseModel):
 
 class PhotoWithFile(PhotoSave):
     file: File
+
+
+class ContourSave(BaseModel):
+    id: int
+    file_uuid: UUID4
+    author_id: UUID4
+    num_images: int = Field(..., ge=0)
+    url: str
+    create_at: datetime
+
+class PhotoContourWithFile(ContourSave):
+    file: File
+    version: int

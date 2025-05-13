@@ -12,8 +12,10 @@ class Files(Base):
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     size_bytes: Mapped[int] = mapped_column(BIGINT, nullable=False)
     num_slices: Mapped[int] = mapped_column(nullable=False)
-    author_id: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey('users.uuid'), nullable=True, default=None)
+    author_id: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey('users.uuid'), nullable=True,
+                                                   default=None)
     is_public: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     author: Mapped["Users"] = relationship(back_populates='files', lazy="select")
     saved_photos_file: Mapped[list['Photos']] = relationship(back_populates='file', lazy="select")
+    contours_file: Mapped[list['Contours']] = relationship(back_populates='file', lazy="select")

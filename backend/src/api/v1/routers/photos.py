@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, BackgroundTasks, Depends, HTTPException, status, Response, Path
-from pydantic import UUID4
+from pydantic import UUID4, BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.db import get_async_session
@@ -11,8 +11,8 @@ from src.schemas.users import UserPhoto
 from src.service.model import modelManager
 from src.service.redis_conn import get_metadata, get_contours_cached, load_contours_cached, \
     load_clear_photo, get_clear_photo_cached
-from src.service.s3 import create_add_photo_s3
 from src.utils.file import get_file_bytes
+from src.utils.s3_jobs import create_add_photo_s3
 
 router = APIRouter(prefix='/photos')
 
@@ -42,7 +42,7 @@ async def saved_photos(
             )
 
     photoOrm = await photos_manager.create_with_author(session, photo_data, user_id, request_id)
-    background_task.add_task(create_add_photo_s3, photoOrm, request_id)
+    background_task.add_task(create_add_photo_s3, photoOrm, request_id, session)
 
     return photoOrm
 
@@ -89,7 +89,8 @@ async def get_file_photo(background_task: BackgroundTasks, file_uuid: UUID4, req
         if img := await get_clear_photo_cached(file_uuid, num_slices):
             return Response(content=img, media_type="image/png")
 
-        file_bytes = await get_file_bytes(background_task, file_uuid, session=session, request_id=request_id,
+        file_bytes = await get_file_bytes(background_task=background_task, file_uuid=file_uuid, session=session,
+                                          request_id=request_id,
                                           num_images=num_slices)
         image = modelManager.pred_image(file_bytes, num_slices)
         img = modelManager.get_photo(image)
@@ -104,7 +105,7 @@ async def get_file_photo(background_task: BackgroundTasks, file_uuid: UUID4, req
             "Failed delete photo ",
             extra={
                 "file_uuid": file_uuid,
-                'num_slices':num_slices,
+                'num_slices': num_slices,
                 "request_id": request_id,
             },
             exc_info=e,
@@ -121,7 +122,8 @@ async def get_file_photo(background_task: BackgroundTasks, file_uuid: UUID4, req
             return con
         else:
 
-            file_bytes = await get_file_bytes(background_task, file_uuid, session=session, request_id=request_id,
+            file_bytes = await get_file_bytes(background_task=background_task, file_uuid=file_uuid, session=session,
+                                              request_id=request_id,
                                               num_images=num_slices)
             image = modelManager.pred_image(file_bytes, num_slices)
             con = modelManager.get_result_contours(image)
