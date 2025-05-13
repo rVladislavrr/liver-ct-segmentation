@@ -32,14 +32,19 @@ const Registration = () => {
     }
 
     setIsLoading(true);
-    const result = await register(formData.name, formData.email, formData.password);
+    try {
+      const result = await register(formData.name, formData.email, formData.password);
 
-    if (result.success) {
-      navigate('/login');
-    } else {
-      setFormError(result.error);
+      if (result.success) {
+        navigate('/login');
+      } else {
+        setFormError(result.error);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      setFormError(error.message || 'Произошла ошибка при входе');
+      console.error('Login error:', error);
     }
-    setIsLoading(false);
   };
 
   const handleChange = (e) => {
@@ -137,7 +142,6 @@ const Registration = () => {
             <Link to={'/login'}> Войти</Link>
           </div>
         </form>
-        {formError && <div className="error-message">{formError}</div>}
       </div>
     </>
   );

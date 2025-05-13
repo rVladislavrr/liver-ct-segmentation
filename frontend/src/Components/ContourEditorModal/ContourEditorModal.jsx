@@ -56,15 +56,41 @@ const ContourEditorModal = ({ uuid, sliceIndex, isOpen, onClose, onSave }) => {
 
     return () => {
       if (cleanImage) URL.revokeObjectURL(cleanImage.src);
-    };
+    }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, uuid, sliceIndex]);
 
   useEffect(() => {
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-    };
+    }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        const stage = stageRef.current;
+        const pointerPos = stage.getPointerPosition();
+        if (!pointerPos) return;
+
+        const stageX = stage.x();
+        const stageY = stage.y();
+
+        const newPoint = [(pointerPos.x - stageX) / zoom / manualScaleX, (pointerPos.y - stageY) / zoom / manualScaleY];
+
+        setPoints([...points, newPoint]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, points, zoom]);
 
   const handlePointDrag = (pointIndex, e) => {
     if (e.evt.button !== 0) return;
@@ -75,6 +101,16 @@ const ContourEditorModal = ({ uuid, sliceIndex, isOpen, onClose, onSave }) => {
     const newPoints = [...points];
     newPoints[pointIndex] = [stageX, stageY];
     setPoints(newPoints);
+  };
+
+  const handlePointClick = (pointIndex, e) => {
+    if (e.evt.button === 2) {
+      // ПКМ
+      e.evt.preventDefault();
+      const newPoints = [...points];
+      newPoints.splice(pointIndex, 1);
+      setPoints(newPoints);
+    }
   };
 
   const handleSave = async () => {
@@ -132,7 +168,7 @@ const ContourEditorModal = ({ uuid, sliceIndex, isOpen, onClose, onSave }) => {
     >
       <div className="modal-content">
         <div className="modal-header">
-          <h3>Редактирование контура</h3>
+          <p className="modal-header-title">Редактирование контура</p>
           <button
             onClick={onClose}
             className="close-button"
@@ -146,26 +182,39 @@ const ContourEditorModal = ({ uuid, sliceIndex, isOpen, onClose, onSave }) => {
             <div className="loading-indicator">Загрузка...</div>
           ) : (
             <>
-              <div style={{ marginBottom: '10px' }}>
-                <button onClick={handleZoomIn}>Увеличить +</button>
+              <div className="size-buttons">
+                <p className="hint-text">
+                  <b>Колёсико (зажать)</b> — двигать фото
+                </p>
+                <p className="hint-text">
+                  <b>Пробел</b> — добавить точку
+                </p>
+                <p className="hint-text">
+                  <b>ПКМ</b> — удалить точку
+                </p>
                 <button
+                  className="zoom-btn"
+                  onClick={handleZoomIn}
+                >
+                  Увеличить (+)
+                </button>
+                <button
+                  className="zoom-btn"
                   onClick={handleZoomOut}
                   style={{ marginLeft: '10px' }}
                 >
-                  Уменьшить -
+                  Уменьшить (-)
                 </button>
-                <p style={{ fontSize: '12px', marginTop: '5px' }}>(ПКМ зажать — двигать фото)</p>
               </div>
 
               <Stage
-                width={targetWidth}
-                height={targetHeight}
+                width={targetWidth + 70}
+                height={targetHeight - 40}
                 x={stagePosition.x}
                 y={stagePosition.y}
                 draggable={false}
                 onMouseDown={(e) => {
                   if (e.evt.button === 1) {
-                    // Средняя кнопка
                     e.evt.preventDefault();
                     setIsDraggingStage(true);
                     setLastMousePos({
@@ -227,6 +276,7 @@ const ContourEditorModal = ({ uuid, sliceIndex, isOpen, onClose, onSave }) => {
                         fill="red"
                         draggable
                         onDragMove={(e) => handlePointDrag(pointIndex, e)}
+                        onMouseDown={(e) => handlePointClick(pointIndex, e)}
                       />
                     ))}
                   </Group>

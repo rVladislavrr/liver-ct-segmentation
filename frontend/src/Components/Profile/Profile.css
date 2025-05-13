@@ -307,3 +307,23 @@ body {
   color: #d32f2f;
   display: block;
 }
+
+.photo-title-wrapper {
+  min-height: 40px;
+  margin-bottom: 5px;
+}
+
+.modal-title-photo {
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.contour-version {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.8em;
+  color: #8a9cb1;
+  margin: 0;
+  line-height: 1.2;
+  text-align: center;
+  margin-top: 4px;
+}

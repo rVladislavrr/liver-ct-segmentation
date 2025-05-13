@@ -46,3 +46,21 @@ export const deletePhoto = async (photoUuid) => {
     throw error;
   }
 };
+
+export const deleteContour = async (photoUuid) => {
+  const accessToken = localStorage.getItem('accessToken');
+  try {
+    await axios.delete(`${API_URL}/contours/${photoUuid}/delete`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    toast.success('Фотография успешно удалена!');
+    return true;
+  } catch (error) {
+    console.error('Delete error:', error);
+    const errorMessage = error.response?.data?.detail.msg + `\n(${error.response?.data?.detail?.request_id})` || error.message || 'Не удалось удалить фотографию';
+    toast.error(errorMessage);
+    throw error;
+  }
+};

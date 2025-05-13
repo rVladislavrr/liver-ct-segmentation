@@ -29,7 +29,6 @@ const Home = () => {
     return saved ? JSON.parse(saved) : null;
   });
   const [isContourModalOpen, setIsContourModalOpen] = useState(false);
-  const [contourPoints, setContourPoints] = useState([]);
 
   const { cacheImage, getCachedImage } = useImageCache();
 

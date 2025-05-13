@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { deletePhoto, fetchUserProfile } from '../../api/profileApi';
+import { deleteContour, deletePhoto, fetchUserProfile } from '../../api/profileApi';
 import Modal from 'react-modal';
 import './Profile.css';
 import { Link } from 'react-router-dom';
@@ -13,8 +13,6 @@ const Profile = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [photosByFile, setPhotosByFile] = useState({});
-  // eslint-disable-next-line
-  const [photos, setPhotos] = useState(photosByFile);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({
     isOpen: false,
     photoUuid: null,
@@ -27,6 +25,7 @@ const Profile = () => {
         const data = await fetchUserProfile();
         setUserData(data);
         const grouped = {};
+
         data.saved_photos_direct?.forEach((photo) => {
           if (!grouped[photo.file.filename]) {
             grouped[photo.file.filename] = {
@@ -36,6 +35,28 @@ const Profile = () => {
           }
           grouped[photo.file.filename].photos.push(photo);
         });
+
+        data.contours?.forEach((contour) => {
+          if (!grouped[contour.file.filename]) {
+            grouped[contour.file.filename] = {
+              file_info: contour.file,
+              photos: [],
+            };
+          }
+          grouped[contour.file.filename].photos.push({
+            uuid: `contour_${contour.id}`,
+            name: `${contour.num_images}.png`,
+            file_uuid: contour.file_uuid,
+            author_uuid: contour.author_id,
+            num_images: contour.num_images,
+            url: contour.url,
+            create_at: contour.create_at,
+            file: contour.file,
+            type: 'contour',
+            version: contour.version,
+          });
+        });
+
         setPhotosByFile(grouped);
       } catch (err) {
         console.error('Profile load error', err);
@@ -53,7 +74,13 @@ const Profile = () => {
 
   const handleDeletePhoto = async (fileUuid, photoUuid) => {
     try {
-      await deletePhoto(photoUuid);
+      if (typeof photoUuid === 'number') {
+        await deleteContour(photoUuid);
+        console.log(typeof deleteContour);
+      } else {
+        await deletePhoto(photoUuid);
+        console.log(typeof deletePhoto);
+      }
 
       setPhotosByFile((prev) => {
         const updated = { ...prev };
@@ -105,7 +132,12 @@ const Profile = () => {
   return (
     <>
       <div className="profile-header">
-        <p className="title-website">Веб-сервис для сегментации снимков КТ печени</p>
+        <Link
+          to="/"
+          style={{ textDecoration: 'none' }}
+        >
+          <p className="title-website">Веб-сервис для сегментации снимков КТ печени</p>
+        </Link>
         <div className="back-btn">
           <Link to="/">
             <button className="header-back-button">На главную</button>
@@ -179,7 +211,10 @@ const Profile = () => {
                   alt={photo.name}
                   className="photo-image"
                 />
-                <p className="modal-title-photo">{photo.name}</p>
+                <div className="photo-title-wrapper">
+                  <p className="modal-title-photo">{photo.name}</p>
+                  {photo.type === 'contour' && <p className="contour-version">Версия {photo.version}</p>}
+                </div>
                 <div className="photo-meta-wrapper">
                   <div className="photo-meta">
                     <span className="save-date-label">Сохранено</span>
@@ -202,7 +237,7 @@ const Profile = () => {
                       e.stopPropagation();
                       setDeleteConfirmModal({
                         isOpen: true,
-                        photoUuid: photo.uuid,
+                        photoUuid: photo?.uuid || photo?.id,
                         fileUuid: selectedFile.fileInfo.uuid,
                       });
                     }}

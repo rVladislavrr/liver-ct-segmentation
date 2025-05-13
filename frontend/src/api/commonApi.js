@@ -51,7 +51,7 @@ export const saveContourPoints = async (uuid, sliceIndex, points) => {
   }
   try {
     const response = await api.post(
-      `photos/${uuid}/${sliceIndex}/save`,
+      `${uuid}/${sliceIndex}/save`,
       {
         points,
       },

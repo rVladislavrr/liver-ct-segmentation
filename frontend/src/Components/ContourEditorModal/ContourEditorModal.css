@@ -13,12 +13,13 @@
 
 .contour-modal {
   background: #fff;
-  border-radius: 8px;
-  max-width: 700px;
-  width: 90%;
+  border-radius: 12px;
+  width: 700px;
   max-height: 90vh;
   outline: none;
-  padding: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: 'Open Sans', sans-serif;
 }
 
 .modal-content {
@@ -31,41 +32,139 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-top: -10px;
+}
+
+.modal-header-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 28px;
   cursor: pointer;
-  color: #666;
+  color: #6784a1;
+  transition: color 0.2s ease;
+  line-height: 1;
+  padding: 0 8px;
+}
+
+.close-button:hover {
+  color: #9b0000;
+}
+
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 6px;
+}
+
+.size-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.zoom-btn {
+  background-color: #6784a1;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.zoom-btn:hover {
+  background-color: #5a768f;
+}
+
+.zoom-btn:active {
+  background-color: #4d6980;
+}
+
+.hint-text {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  color: #5a6a7a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hint-text b {
+  font-weight: 600;
+  color: #4a5a6a;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .cancel-button {
-  padding: 8px 16px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 10px 20px;
+  background: #f0f2f5;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
   cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5a6a;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: #e4e7eb;
+  border-color: #c1cad3;
 }
 
 .save-button {
-  padding: 8px 16px;
-  background: #1890ff;
+  padding: 10px 20px;
+  background: #6784a1;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.save-button:hover {
+  background: #5a768f;
 }
 
 .save-button:disabled {
-  background: #ccc;
+  background: #b8c2cc;
   cursor: not-allowed;
+}
+
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  color: #5a6a7a;
 }

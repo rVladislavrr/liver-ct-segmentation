@@ -21,7 +21,9 @@ const Header = () => {
 
   return (
     <div className="main-header">
-      <p className="header-title">Веб-сервис для сегментации снимков КТ печени</p>
+      <Link to="/" style={{textDecoration: 'none'}}>
+        <p className="header-title">Веб-сервис для сегментации снимков КТ печени</p>
+      </Link>
       <div className="registration-header">
         {isAuth ? (
           <>

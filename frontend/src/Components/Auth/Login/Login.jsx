@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../../api/commonApi.js';
 import './Login.css';
-import { validateLoginForm, validateEmail, validatePassword } from '../../../utils/validationAuth.js'
+import { validateEmail, validatePassword } from '../../../utils/validationAuth.js';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,12 +18,40 @@ const Login = () => {
     password: '',
   });
 
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      email: '',
+      password: '',
+    };
+
+    // Валидация email
+    if (!formData.email) {
+      newErrors.email = 'Email обязателен';
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Введите корректный email';
+      isValid = false;
+    }
+
+    // Валидация пароля
+    if (!formData.password) {
+      newErrors.password = 'Пароль обязателен';
+      isValid = false;
+    } else if (!validatePassword(formData.password)) {
+      newErrors.password = 'Пароль должен содержать минимум 6 символов';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-    const { isValid, errors: validationErrors } = validateLoginForm(formData);
-    if (!isValid) {
-      setErrors(validationErrors);
+
+    if (!validateForm()) {
       return;
     }
 
@@ -34,10 +62,11 @@ const Login = () => {
       if (result.success) {
         navigate('/');
       } else {
-        setFormError(result.error);
+        setFormError(result.error || 'Неверный email или пароль');
       }
     } catch (error) {
-      setFormError(error);
+      setFormError(error.message || 'Произошла ошибка при входе');
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -49,14 +78,11 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: '',
-    }));
   };
 
-  const isFormValid = validateEmail(formData.email) && validatePassword(formData.password);
+  const isFormValid = formData.email && formData.password && 
+                     validateEmail(formData.email) && 
+                     validatePassword(formData.password);
 
   return (
     <>
@@ -76,9 +102,8 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? 'error-input' : ''}
-              required
             />
-            {errors.email && <div style={{ color: 'red', fontSize: '0.8rem' }}>{errors.email}</div>}
+            {errors.email && <div className="error-text">{errors.email}</div>}
           </div>
 
           <div className="form-group">
@@ -91,24 +116,23 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               className={errors.password ? 'error-input' : ''}
-              required
             />
-            {errors.password && <div style={{ color: 'red', fontSize: '0.8rem' }}>{errors.password}</div>}
+            {errors.password && <div className="error-text">{errors.password}</div>}
           </div>
 
           <button
             type="submit"
             disabled={isLoading || !isFormValid}
-            className="submit-button"
+            className={`submit-button ${isLoading ? 'loading' : ''}`}
           >
-            Войти
+            {isLoading ? 'Загрузка...' : 'Войти'}
           </button>
           <div className="register-link">
             Нет аккаунта?
             <Link to={'/registration'}> Регистрация</Link>
           </div>
         </form>
-        {formError && <div className="error-message">{formError}</div>}
+        
       </div>
     </>
   );
