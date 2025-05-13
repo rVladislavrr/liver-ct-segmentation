@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, UUID4
 
-from src.schemas.photos import PhotoWithFile
+from src.schemas.photos import PhotoWithFile, PhotoContourWithFile
 
 
 class Token(BaseModel):
@@ -27,3 +27,4 @@ class UserPhoto(UserInfo):
     name: str | None = Field(None,min_length=2, )
     email: EmailStr
     saved_photos_direct: list[PhotoWithFile]
+    contours: list[PhotoContourWithFile]

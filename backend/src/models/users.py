@@ -17,6 +17,7 @@ class Users(Base):
 
     files: Mapped[list["Files"]] = relationship(back_populates='author', lazy="select")
     author_photos: Mapped[list['Photos']] = relationship(back_populates='author', lazy="select")
+    contours: Mapped[list['Contours']] = relationship(back_populates='author_counters', lazy="select")
     user_saved_photos: Mapped[list['UserSavedPhoto']] = relationship(
         back_populates='user', lazy='select', overlaps="saved_photos_direct,saved_by_users"
     )
