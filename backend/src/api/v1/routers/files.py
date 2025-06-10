@@ -139,7 +139,7 @@ async def predict(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail={'msg': 'Forbidden file not is_public',
                                                                                "request_id": request_id})
 
-    file_bytes = await get_file_bytes(background_task = background_task, file_uuid=file_uuid,
+    file_bytes = await get_file_bytes(background_task=background_task, file_uuid=file_uuid,
                                       session=session, request_id=request_id,
                                       num_images=predict_request.num_images, user_id=user_id,
                                       metadata=metadata)

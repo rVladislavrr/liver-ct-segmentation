@@ -68,3 +68,17 @@ async def save_contours(background_task: BackgroundTasks, file_uuid: UUID4, requ
     background_task.add_task(save_add_photo_s3_contour, contourOrm, request_id, session)
 
     return contourOrm
+
+@router.delete('/contours/{contour_id}/delete')
+async def save_contours(background_task: BackgroundTasks, request: Request,
+                        contour_id: int = Path(ge=0),
+                        session: AsyncSession = Depends(get_async_session)):
+    try:
+        contours = await session.get(Contours, contour_id)
+        if contours is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contour not found")
+        await session.delete(contours)
+        await session.commit()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Bad request")

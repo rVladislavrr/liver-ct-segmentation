@@ -44,7 +44,7 @@ const Profile = () => {
             };
           }
           grouped[contour.file.filename].photos.push({
-            uuid: `contour_${contour.id}`,
+            uuid: contour.id,
             name: `${contour.num_images}.png`,
             file_uuid: contour.file_uuid,
             author_uuid: contour.author_id,
